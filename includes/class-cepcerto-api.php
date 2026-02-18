@@ -16,16 +16,11 @@ class CepCerto_Api {
 	const TIMEOUT = 10;
 
 	public function get_base_url() {
-		$baseUrl = get_option( 'cepcerto_base_url' );
-		if ( empty( $baseUrl ) ) {
-			$baseUrl = self::DEFAULT_BASE_URL;
-		}
-
-		return untrailingslashit( $baseUrl );
+		return untrailingslashit( self::DEFAULT_BASE_URL );
 	}
 
 	public function get_api_key() {
-		return (string) get_option( 'cepcerto_api_key', '' );
+		return '';
 	}
 
 	public function get_token_cliente_postagem() {
@@ -34,9 +29,6 @@ class CepCerto_Api {
 
 	public function quote_get( $cep_origem, $cep_destino, $peso, $altura, $largura, $comprimento ) {
 		$apiKey = $this->get_api_key();
-		if ( empty( $apiKey ) ) {
-			return new WP_Error( 'cepcerto_missing_api_key', 'API key do CepCerto não configurada.' );
-		}
 
 		$url = sprintf(
 			'%s/%s/%s/%s/%s/%s/%s/%s',

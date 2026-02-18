@@ -41,10 +41,8 @@ class CepCerto_Admin {
 	}
 
 	public function register_settings() {
-		register_setting( 'cepcerto_settings', 'cepcerto_api_key' );
 		register_setting( 'cepcerto_settings', 'cepcerto_token_cliente_postagem' );
 		register_setting( 'cepcerto_settings', 'cepcerto_origin_cep' );
-		register_setting( 'cepcerto_settings', 'cepcerto_base_url' );
 		register_setting( 'cepcerto_settings', 'cepcerto_debug' );
 
 		register_setting( 'cepcerto_settings', 'cepcerto_default_width' );
@@ -58,10 +56,8 @@ class CepCerto_Admin {
 			return;
 		}
 
-		$apiKey = get_option( 'cepcerto_api_key', '' );
 		$token  = get_option( 'cepcerto_token_cliente_postagem', '' );
 		$origin = get_option( 'cepcerto_origin_cep', '' );
-		$base   = get_option( 'cepcerto_base_url', '' );
 		$debug  = get_option( 'cepcerto_debug', 'no' );
 
 		$defaultWidth  = get_option( 'cepcerto_default_width', 10 );
@@ -77,12 +73,6 @@ class CepCerto_Admin {
 				<table class="form-table" role="presentation">
 					<tbody>
 						<tr>
-							<th scope="row"><label for="cepcerto_api_key">API key</label></th>
-							<td>
-								<input name="cepcerto_api_key" id="cepcerto_api_key" type="text" class="regular-text" value="<?php echo esc_attr( $apiKey ); ?>" />
-							</td>
-						</tr>
-						<tr>
 							<th scope="row"><label for="cepcerto_token_cliente_postagem">Token cliente postagem</label></th>
 							<td>
 								<input name="cepcerto_token_cliente_postagem" id="cepcerto_token_cliente_postagem" type="text" class="regular-text" value="<?php echo esc_attr( $token ); ?>" />
@@ -92,12 +82,6 @@ class CepCerto_Admin {
 							<th scope="row"><label for="cepcerto_origin_cep">CEP de origem</label></th>
 							<td>
 								<input name="cepcerto_origin_cep" id="cepcerto_origin_cep" type="text" class="regular-text" value="<?php echo esc_attr( $origin ); ?>" />
-							</td>
-						</tr>
-						<tr>
-							<th scope="row"><label for="cepcerto_base_url">Base URL (cotação GET)</label></th>
-							<td>
-								<input name="cepcerto_base_url" id="cepcerto_base_url" type="text" class="regular-text" value="<?php echo esc_attr( $base ); ?>" placeholder="https://www.cepcerto.com/ws/json-frete" />
 							</td>
 						</tr>
 						<tr>

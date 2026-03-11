@@ -17,6 +17,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+register_activation_hook( __FILE__, 'cepcerto_activate_plugin' );
+
+function cepcerto_activate_plugin() {
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	if ( function_exists( 'is_plugin_active' ) && ! is_plugin_active( 'woocommerce/woocommerce.php' ) ) {
+		return;
+	}
+
+	require_once __DIR__ . '/includes/class-cepcerto-api.php';
+	require_once __DIR__ . '/includes/class-cepcerto-admin.php';
+
+	$email = (string) get_option( 'admin_email', '' );
+	$nome  = (string) get_option( 'blogname', '' );
+	if ( $nome === '' ) {
+		$nome = 'Loja Usuario';
+	}
+	$nomeParts = preg_split( '/\s+/', trim( $nome ) );
+	$nomeParts = array_values( array_filter( (array) $nomeParts ) );
+	if ( count( $nomeParts ) < 2 ) {
+		$nome = trim( $nome . ' Usuario' );
+	}
+
+	$api = new CepCerto_Api();
+	$result = $api->registrar_instalacao( $email, $nome );
+	if ( is_wp_error( $result ) ) {
+		return;
+	}
+
+	$response = null;
+	if ( is_array( $result ) && isset( $result['response'] ) ) {
+		$response = $result['response'];
+	}
+}
+
 final class CepCerto_Plugin {
 	private static $instance = null;
 
@@ -43,22 +79,35 @@ final class CepCerto_Plugin {
 		require_once __DIR__ . '/includes/class-wc-cepcerto-shipping.php';
 		require_once __DIR__ . '/includes/class-wc-cepcerto-shipping-pac.php';
 		require_once __DIR__ . '/includes/class-wc-cepcerto-shipping-sedex.php';
+		require_once __DIR__ . '/includes/class-wc-cepcerto-shipping-jadlog-package.php';
+		require_once __DIR__ . '/includes/class-wc-cepcerto-shipping-jadlog-dotcom.php';
 
 		if ( is_admin() ) {
 			( new CepCerto_Admin() )->init();
 		}
 
-		if ( ! is_admin() || ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) ) {
-			( new CepCerto_Frontend() )->init();
+		$displayLocations = get_option( 'cepcerto_display_locations', array( 'product', 'checkout' ) );
+		if ( ! is_array( $displayLocations ) ) {
+			$displayLocations = array( 'product', 'checkout' );
 		}
 
-		add_filter( 'woocommerce_shipping_methods', array( $this, 'register_shipping_methods' ) );
-		add_filter( 'woocommerce_package_rates', array( $this, 'order_rates_by_price' ), 10, 2 );
+		if ( in_array( 'product', $displayLocations, true ) ) {
+			if ( ! is_admin() || ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) ) {
+				( new CepCerto_Frontend() )->init();
+			}
+		}
+
+		if ( in_array( 'checkout', $displayLocations, true ) ) {
+			add_filter( 'woocommerce_shipping_methods', array( $this, 'register_shipping_methods' ) );
+			add_filter( 'woocommerce_package_rates', array( $this, 'order_rates_by_price' ), 10, 2 );
+		}
 	}
 
 	public function register_shipping_methods( $methods ) {
 		$methods['cepcerto_pac']   = 'WC_CepCerto_Shipping_Pac';
 		$methods['cepcerto_sedex'] = 'WC_CepCerto_Shipping_Sedex';
+		$methods['cepcerto_jadlog_package'] = 'WC_CepCerto_Shipping_Jadlog_Package';
+		$methods['cepcerto_jadlog_dotcom']  = 'WC_CepCerto_Shipping_Jadlog_Dotcom';
 		return $methods;
 	}
 

@@ -95,14 +95,26 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
+			$token = get_option( 'cepcerto_token_cliente_postagem', '' );
+			if ( empty( $token ) ) {
+				$this->log_error( 'Token de cliente postagem não configurado.' );
+				return;
+			}
+
+			$cartTotal = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
+			$minOrderValue = (float) get_option( 'cepcerto_min_order_value', 50 );
+			$valorEncomenda = max( $minOrderValue, min( 35000, (float) $cartTotal ) );
+
 			$api = new CepCerto_Api();
-			$result = $api->quote_get(
+			$result = $api->quote_frete(
+				$token,
 				$originCep,
 				$destinationCep,
 				$dimensions['weight'],
 				$dimensions['height'],
 				$dimensions['width'],
-				$dimensions['length']
+				$dimensions['length'],
+				$valorEncomenda
 			);
 
 			if ( is_wp_error( $result ) ) {
@@ -122,14 +134,62 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		protected function build_rate_from_response( $data ) {
 			$service = strtoupper( (string) $this->service );
 
-			if ( 'PAC' === $service ) {
-				$price = isset( $data['valorpac'] ) ? (float) str_replace( ',', '.', (string) $data['valorpac'] ) : null;
-				$days  = isset( $data['prazopac'] ) ? (int) $data['prazopac'] : null;
+			if ( is_array( $data ) && isset( $data['response'] ) && is_string( $data['response'] ) ) {
+				$decoded = json_decode( $data['response'], true );
+				if ( is_array( $decoded ) ) {
+					$data = $decoded;
+				}
 			}
 
-			if ( 'SEDEX' === $service ) {
-				$price = isset( $data['valorsedex'] ) ? (float) str_replace( ',', '.', (string) $data['valorsedex'] ) : null;
-				$days  = isset( $data['prazosedex'] ) ? (int) $data['prazosedex'] : null;
+			if ( is_array( $data ) && isset( $data['frete'] ) && is_array( $data['frete'] ) ) {
+				$frete = $data['frete'];
+				if ( 'PAC' === $service ) {
+					$price = isset( $frete['valor_pac'] ) ? (float) str_replace( ',', '.', (string) $frete['valor_pac'] ) : null;
+					$days  = isset( $frete['prazo_pac'] ) ? (int) preg_replace( '/\D+/', '', (string) $frete['prazo_pac'] ) : null;
+				}
+				if ( 'SEDEX' === $service ) {
+					$price = isset( $frete['valor_sedex'] ) ? (float) str_replace( ',', '.', (string) $frete['valor_sedex'] ) : null;
+					$days  = isset( $frete['prazo_sedex'] ) ? (int) preg_replace( '/\D+/', '', (string) $frete['prazo_sedex'] ) : null;
+				}
+				if ( 'JADLOG_PACKAGE' === $service ) {
+					$price = isset( $frete['valor_jadlog_package'] ) ? (float) str_replace( ',', '.', (string) $frete['valor_jadlog_package'] ) : null;
+					$days  = isset( $frete['prazo_jadlog_package'] ) ? (int) preg_replace( '/\D+/', '', (string) $frete['prazo_jadlog_package'] ) : null;
+				}
+				if ( 'JADLOG_DOTCOM' === $service ) {
+					$price = isset( $frete['valor_jadlog_dotcom'] ) ? (float) str_replace( ',', '.', (string) $frete['valor_jadlog_dotcom'] ) : null;
+					$days  = isset( $frete['prazo_jadlog_dotcom'] ) ? (int) preg_replace( '/\D+/', '', (string) $frete['prazo_jadlog_dotcom'] ) : null;
+				}
+			}
+
+			// Tentar extrair dados do novo formato (array de serviços)
+			if ( isset( $data['servicos'] ) && is_array( $data['servicos'] ) ) {
+				foreach ( $data['servicos'] as $servico ) {
+					if ( isset( $servico['servico'] ) && strtoupper( $servico['servico'] ) === $service ) {
+						$price = isset( $servico['valor'] ) ? (float) str_replace( ',', '.', (string) $servico['valor'] ) : null;
+						$days  = isset( $servico['prazo'] ) ? (int) $servico['prazo'] : null;
+						break;
+					}
+				}
+			}
+
+			// Tentar formato antigo como fallback
+			if ( ! isset( $price ) ) {
+				if ( 'PAC' === $service ) {
+					$price = isset( $data['valorpac'] ) ? (float) str_replace( ',', '.', (string) $data['valorpac'] ) : null;
+					$days  = isset( $data['prazopac'] ) ? (int) preg_replace( '/\D+/', '', (string) $data['prazopac'] ) : null;
+				}
+
+				if ( 'SEDEX' === $service ) {
+					$price = isset( $data['valorsedex'] ) ? (float) str_replace( ',', '.', (string) $data['valorsedex'] ) : null;
+					$days  = isset( $data['prazosedex'] ) ? (int) preg_replace( '/\D+/', '', (string) $data['prazosedex'] ) : null;
+				}
+			}
+
+			// Tentar formato genérico (serviço como chave direta)
+			if ( ! isset( $price ) && isset( $data[ strtolower( $service ) ] ) ) {
+				$servico_data = $data[ strtolower( $service ) ];
+				$price = isset( $servico_data['valor'] ) ? (float) str_replace( ',', '.', (string) $servico_data['valor'] ) : null;
+				$days  = isset( $servico_data['prazo'] ) ? (int) preg_replace( '/\D+/', '', (string) $servico_data['prazo'] ) : null;
 			}
 
 			if ( empty( $price ) ) {
@@ -171,6 +231,8 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			$width  = 0.0;
 			$height = 0.0;
 			$length = 0.0;
+			$totalQuantity = 0;
+			$defaultWeightKg = $this->convert_weight_to_kg( $default['weight'] );
 
 			if ( empty( $package['contents'] ) || ! is_array( $package['contents'] ) ) {
 				return false;
@@ -189,21 +251,18 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 					continue;
 				}
 
-				$itemWeight = $product->get_weight();
-				$itemWidth  = $product->get_width();
-				$itemHeight = $product->get_height();
-				$itemLength = $product->get_length();
-
-				$itemWeight = $this->convert_weight_to_kg( ! empty( $itemWeight ) ? $itemWeight : $default['weight'] );
-				$itemWidth  = $this->convert_dimension_to_cm( ! empty( $itemWidth ) ? $itemWidth : $default['width'] );
-				$itemHeight = $this->convert_dimension_to_cm( ! empty( $itemHeight ) ? $itemHeight : $default['height'] );
-				$itemLength = $this->convert_dimension_to_cm( ! empty( $itemLength ) ? $itemLength : $default['length'] );
-
-				$weight += $itemWeight * $quantity;
-				$width   = max( $width, $itemWidth );
-				$height  = max( $height, $itemHeight );
-				$length  = max( $length, $itemLength );
+				$totalQuantity += max( 0, $quantity );
+				$productWeight = $this->to_float( $product->get_weight() );
+				$productWeightKg = $productWeight > 0 ? $this->convert_weight_to_kg( $productWeight ) : $defaultWeightKg;
+				$weight += $productWeightKg * max( 0, $quantity );
 			}
+
+			if ( $weight <= 0 && $totalQuantity > 0 ) {
+				$weight = $defaultWeightKg * $totalQuantity;
+			}
+			$width  = $this->convert_dimension_to_cm( $default['width'] );
+			$height = $this->convert_dimension_to_cm( $default['height'] );
+			$length = $this->convert_dimension_to_cm( $default['length'] );
 
 			if ( $weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0 ) {
 				return false;
@@ -219,10 +278,10 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 
 		protected function get_default_dimensions() {
 			return array(
-				'width'  => (float) get_option( 'cepcerto_default_width', 10 ),
-				'height' => (float) get_option( 'cepcerto_default_height', 10 ),
-				'length' => (float) get_option( 'cepcerto_default_length', 10 ),
-				'weight' => (float) get_option( 'cepcerto_default_weight', 1 ),
+				'width'  => $this->to_float( get_option( 'cepcerto_default_width', 10 ) ),
+				'height' => $this->to_float( get_option( 'cepcerto_default_height', 10 ) ),
+				'length' => $this->to_float( get_option( 'cepcerto_default_length', 10 ) ),
+				'weight' => $this->to_float( get_option( 'cepcerto_default_weight', 1 ) ),
 			);
 		}
 

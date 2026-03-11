@@ -20,7 +20,10 @@ class CepCerto_Frontend {
 			return;
 		}
 
-		wp_register_script( 'cepcerto-product', plugins_url( 'assets/product-calculator.js', dirname( __FILE__ ) . '/../cepcerto.php' ), array(), '0.1.0', true );
+		wp_register_style( 'cepcerto-product', plugins_url( 'assets/product-calculator.css', dirname( __FILE__ ) . '/../cepcerto.php' ), array(), '0.2.0' );
+		wp_enqueue_style( 'cepcerto-product' );
+
+		wp_register_script( 'cepcerto-product', plugins_url( 'assets/product-calculator.js', dirname( __FILE__ ) . '/../cepcerto.php' ), array(), '0.2.0', true );
 		wp_enqueue_script( 'cepcerto-product' );
 
 		wp_localize_script(
@@ -45,13 +48,34 @@ class CepCerto_Frontend {
 		}
 
 		?>
-		<div class="cepcerto-calculator" style="margin-top: 16px;">
-			<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-				<label for="cepcerto-postcode" style="margin: 0;">Calcular frete</label>
-				<input type="text" id="cepcerto-postcode" inputmode="numeric" autocomplete="postal-code" placeholder="Digite seu CEP" style="max-width: 180px;" />
-				<button type="button" class="button" id="cepcerto-calc-btn" data-product-id="<?php echo esc_attr( $product->get_id() ); ?>">Calcular</button>
+		<div class="cepcerto-calculator">
+			<div class="cepcerto-calculator__header">
+				<span class="cepcerto-calculator__icon">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+				</span>
+				<span class="cepcerto-calculator__title">Calcular frete e prazo</span>
 			</div>
-			<div id="cepcerto-result" style="margin-top: 12px;"></div>
+			<div class="cepcerto-calculator__form">
+				<input
+					type="text"
+					id="cepcerto-postcode"
+					class="cepcerto-calculator__input"
+					inputmode="numeric"
+					autocomplete="postal-code"
+					placeholder="00000-000"
+					maxlength="9"
+				/>
+				<button
+					type="button"
+					id="cepcerto-calc-btn"
+					class="cepcerto-calculator__btn"
+					data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
+				>Calcular</button>
+			</div>
+			<span class="cepcerto-calculator__link">
+				<a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener noreferrer">Não sei meu CEP</a>
+			</span>
+			<div id="cepcerto-result" class="cepcerto-result"></div>
 		</div>
 		<?php
 	}
@@ -119,6 +143,11 @@ class CepCerto_Frontend {
 			wp_send_json_error( array( 'message' => 'Não foi possível obter peso/dimensões do produto.' ), 400 );
 		}
 
+		$productPrice = (float) wc_get_price_to_display( $product );
+		$minOrderValue = (float) get_option( 'cepcerto_min_order_value', 50 );
+		$baseValorEncomenda = $productPrice > 0 ? $productPrice : $minOrderValue;
+		$valorEncomenda = max( $minOrderValue, min( 35000, $baseValorEncomenda ) );
+
 		if ( class_exists( 'CepCerto_Logger' ) ) {
 			CepCerto_Logger::log(
 				'info',
@@ -139,7 +168,8 @@ class CepCerto_Frontend {
 			$dimensions['weight'],
 			$dimensions['height'],
 			$dimensions['width'],
-			$dimensions['length']
+			$dimensions['length'],
+			$valorEncomenda
 		);
 
 		if ( is_wp_error( $result ) ) {
@@ -160,20 +190,19 @@ class CepCerto_Frontend {
 	}
 
 	private function get_product_dimensions( $product ) {
-		$defaultWidth  = (float) get_option( 'cepcerto_default_width', 10 );
-		$defaultHeight = (float) get_option( 'cepcerto_default_height', 10 );
-		$defaultLength = (float) get_option( 'cepcerto_default_length', 10 );
-		$defaultWeight = (float) get_option( 'cepcerto_default_weight', 1 );
+		$defaultWidth  = $this->to_float( get_option( 'cepcerto_default_width', 10 ) );
+		$defaultHeight = $this->to_float( get_option( 'cepcerto_default_height', 10 ) );
+		$defaultLength = $this->to_float( get_option( 'cepcerto_default_length', 10 ) );
+		$defaultWeight = $this->to_float( get_option( 'cepcerto_default_weight', 1 ) );
 
-		$weight = $product->get_weight();
-		$width  = $product->get_width();
-		$height = $product->get_height();
-		$length = $product->get_length();
-
-		$weight = $this->convert_weight_to_kg( ! empty( $weight ) ? $weight : $defaultWeight );
-		$width  = $this->convert_dimension_to_cm( ! empty( $width ) ? $width : $defaultWidth );
-		$height = $this->convert_dimension_to_cm( ! empty( $height ) ? $height : $defaultHeight );
-		$length = $this->convert_dimension_to_cm( ! empty( $length ) ? $length : $defaultLength );
+		$productWeight = 0.0;
+		if ( $product instanceof WC_Product ) {
+			$productWeight = $this->to_float( $product->get_weight() );
+		}
+		$weight = $productWeight > 0 ? $this->convert_weight_to_kg( $productWeight ) : $this->convert_weight_to_kg( $defaultWeight );
+		$width  = $this->convert_dimension_to_cm( $defaultWidth );
+		$height = $this->convert_dimension_to_cm( $defaultHeight );
+		$length = $this->convert_dimension_to_cm( $defaultLength );
 
 		if ( $weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0 ) {
 			return false;
@@ -185,6 +214,16 @@ class CepCerto_Frontend {
 			'height' => $this->format_number( $height ),
 			'length' => $this->format_number( $length ),
 		);
+	}
+
+	private function to_float( $value ) {
+		$value = (string) $value;
+		$value = str_replace( ',', '.', $value );
+		$value = preg_replace( '/[^0-9.\-]/', '', $value );
+		if ( '' === $value || '-' === $value ) {
+			return 0.0;
+		}
+		return (float) $value;
 	}
 
 	private function convert_dimension_to_cm( $value ) {

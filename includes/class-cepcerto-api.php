@@ -16,6 +16,8 @@ class CepCerto_Api {
 	const URL_POSTAGEM = 'https://cepcerto.com/api-postagem/';
 	const URL_ETIQUETA = 'https://cepcerto.com/api-etiqueta/';
 	const URL_CANCELA = 'https://cepcerto.com/api-cancela/';
+	const URL_POSTAGEM_FRETE = 'https://cepcerto.com/api-postagem-frete/';
+	const URL_CANCELA_POSTAGEM = 'https://cepcerto.com/api-cancela-postagem';
 	const URL_REGISTRO = 'https://cepcerto.com/api-cadastro-wordpress/';
 
 	const TIMEOUT = 10;
@@ -198,6 +200,20 @@ class CepCerto_Api {
 			array(
 				'token_cliente_postagem' => (string) $token_cliente_postagem,
 				'recibo'                 => (string) $recibo,
+			)
+		);
+	}
+
+	public function postagem_frete( $payload ) {
+		return $this->post_json( self::URL_POSTAGEM_FRETE, (array) $payload );
+	}
+
+	public function cancela_postagem( $token_cliente_postagem, $cod_objeto ) {
+		return $this->post_json(
+			self::URL_CANCELA_POSTAGEM,
+			array(
+				'token_cliente_postagem' => (string) $token_cliente_postagem,
+				'cod_objeto'             => (string) $cod_objeto,
 			)
 		);
 	}

@@ -19,6 +19,111 @@ class CepCerto_Admin
 		add_action('wp_ajax_cepcerto_adicionar_credito', array($this, 'ajax_adicionar_credito'));
 		add_action('wp_ajax_cepcerto_gerar_etiqueta', array($this, 'ajax_gerar_etiqueta'));
 		add_action('wp_ajax_cepcerto_cancelar_etiqueta', array($this, 'ajax_cancelar_etiqueta'));
+		add_action('wp_ajax_cepcerto_financeiro', array($this, 'ajax_financeiro'));
+
+		add_filter('manage_edit-shop_order_columns', array($this, 'add_wc_order_tracking_column'), 20);
+		add_action('manage_shop_order_posts_custom_column', array($this, 'render_wc_order_tracking_column'), 20, 2);
+		add_filter('woocommerce_shop_order_list_table_columns', array($this, 'add_wc_order_tracking_column'), 20);
+		add_action('woocommerce_shop_order_list_table_custom_column', array($this, 'render_wc_order_tracking_column_hpos'), 20, 2);
+	}
+
+	private function get_tracking_cell_html($order)
+	{
+		ob_start();
+		$this->echo_tracking_cell($order);
+		return (string) ob_get_clean();
+	}
+
+	public function add_wc_order_tracking_column($columns)
+	{
+		if (! is_array($columns)) {
+			$columns = array();
+		}
+		$columns['cepcerto_rastreio'] = 'Rastreio';
+		return $columns;
+	}
+
+	public function render_wc_order_tracking_column($column, $post_id)
+	{
+		if ('cepcerto_rastreio' !== $column) {
+			return;
+		}
+		$order = function_exists('wc_get_order') ? wc_get_order($post_id) : null;
+		if (! ($order instanceof WC_Order)) {
+			echo '<span style="color:#999;">—</span>';
+			return;
+		}
+		$this->echo_tracking_cell($order);
+	}
+
+	public function render_wc_order_tracking_column_hpos($column, $order)
+	{
+		if ('cepcerto_rastreio' !== $column) {
+			return;
+		}
+		if (! ($order instanceof WC_Order)) {
+			echo '<span style="color:#999;">—</span>';
+			return;
+		}
+		$this->echo_tracking_cell($order);
+	}
+
+	private function echo_tracking_cell($order)
+	{
+		$etiqueta = $order->get_meta('_cepcerto_etiqueta', true);
+		$hasEtiqueta = is_array($etiqueta) && ! empty($etiqueta['codigoObjeto']);
+		if (! $hasEtiqueta) {
+			echo '<span style="color:#999;">—</span>';
+			return;
+		}
+
+		$codigo = (string) $etiqueta['codigoObjeto'];
+		$track = $this->get_cached_tracking($codigo);
+		$link = '';
+		$evt = null;
+		if (is_array($track)) {
+			$link = ! empty($track['link_cepcerto']) ? (string) $track['link_cepcerto'] : ('https://www.cepcerto.com/encomenda-rastreio/' . rawurlencode($codigo));
+			if (! empty($track['eventos']) && is_array($track['eventos'])) {
+				$evt = $track['eventos'][0];
+			}
+		}
+
+		$codeHtml = '<code>' . esc_html($codigo) . '</code>';
+		if ('' !== $link) {
+			$codeHtml = '<a href="' . esc_url($link) . '" target="_blank">' . $codeHtml . '</a>';
+		}
+
+		echo $codeHtml;
+		if (is_array($evt)) {
+			$desc = isset($evt['descricao']) ? (string) $evt['descricao'] : '';
+			$data = isset($evt['data_br']) ? (string) $evt['data_br'] : '';
+			if ($desc !== '' || $data !== '') {
+				echo '<br><small style="color:#555;">' . esc_html(trim($desc)) . ($data !== '' ? ' · ' . esc_html($data) : '') . '</small>';
+			}
+		}
+	}
+
+	private function get_cached_tracking($codigo)
+	{
+		$codigo = (string) $codigo;
+		if ($codigo === '') {
+			return null;
+		}
+		$key = 'cepcerto_track_' . md5($codigo);
+		$cached = get_transient($key);
+		if (false !== $cached && (is_array($cached) || is_object($cached))) {
+			return $cached;
+		}
+		if (! class_exists('CepCerto_Api')) {
+			return null;
+		}
+		$api = new CepCerto_Api();
+		$result = $api->rastreio($codigo);
+		if (is_wp_error($result) || ! is_array($result)) {
+			return null;
+		}
+		set_transient($key, $result, 15 * MINUTE_IN_SECONDS);
+		return $result;
 	}
 
 	public function register_menu()
@@ -465,6 +570,7 @@ class CepCerto_Admin
 						<th style="width: 120px;">Status</th>
 						<th style="width: 160px;">Envio</th>
 						<th style="width: 220px;">Etiqueta</th>
+						<th style="width: 220px;">Rastreio</th>
 						<th style="width: 140px;">Ações</th>
 					</tr>
 				</thead>
@@ -521,6 +627,9 @@ class CepCerto_Admin
 									<span style="color:#999;">—</span>
 								<?php endif; ?>
 							</td>
+							<td class="cepcerto-col-rastreio">
+								<?php echo $this->get_tracking_cell_html($order); ?>
+							</td>
 							<td class="cepcerto-col-acoes">
 								<?php if ($hasEtiqueta) : ?>
 									<button type="button" class="button cepcerto-btn-cancelar" data-order-id="<?php echo esc_attr((string) $orderId); ?>" data-cod-objeto="<?php echo esc_attr($codigoObjeto); ?>">Cancelar</button>
@@ -576,6 +685,7 @@ class CepCerto_Admin
 			function updateRowEtiqueta(row, frete) {
 				var etqCell = row.querySelector('.cepcerto-col-etiqueta');
 				var actCell = row.querySelector('.cepcerto-col-acoes');
+				var trackCell = row.querySelector('.cepcerto-col-rastreio');
 				var orderId = row.getAttribute('data-order-id');
 				var codigo  = (frete && frete.codigoObjeto) ? frete.codigoObjeto : '';
 				var pdfUrl  = (frete && frete.pdfUrlEtiqueta) ? frete.pdfUrlEtiqueta : '';
@@ -586,6 +696,14 @@ class CepCerto_Admin
 				if (declUrl) html += '<a href="' + escAttr(declUrl) + '" target="_blank" style="margin-left:6px;">Declaração</a>';
 				etqCell.innerHTML = html;
 
+				// Atualizar coluna de rastreio
+				if (trackCell && codigo) {
+					var trackHtml = '<code>' + escHtml(codigo) + '</code>';
+					var link = 'https://www.cepcerto.com/encomenda-rastreio/' + encodeURIComponent(codigo);
+					trackHtml = '<a href="' + escAttr(link) + '" target="_blank">' + trackHtml + '</a>';
+					trackCell.innerHTML = trackHtml;
+				}
+
 				actCell.innerHTML = '<button type="button" class="button cepcerto-btn-cancelar" data-order-id="' + escAttr(orderId) + '" data-cod-objeto="' + escAttr(codigo) + '">Cancelar</button>';
 				bindCancelar(actCell.querySelector('.cepcerto-btn-cancelar'));
 			}
@@ -593,8 +711,15 @@ class CepCerto_Admin
 			function clearRowEtiqueta(row) {
 				var etqCell = row.querySelector('.cepcerto-col-etiqueta');
 				var actCell = row.querySelector('.cepcerto-col-acoes');
+				var trackCell = row.querySelector('.cepcerto-col-rastreio');
 				var orderId = row.getAttribute('data-order-id');
 				etqCell.innerHTML = '<span style="color:#999;">—</span>';
+				
+				// Limpar coluna de rastreio
+				if (trackCell) {
+					trackCell.innerHTML = '<span style="color:#999;">—</span>';
+				}
+				
 				actCell.innerHTML = '<button type="button" class="button button-primary cepcerto-btn-gerar" data-order-id="' + escAttr(orderId) + '">Gerar Etiqueta</button>';
 				bindGerar(actCell.querySelector('.cepcerto-btn-gerar'));
 			}
@@ -1070,10 +1195,12 @@ class CepCerto_Admin
 		$ajaxUrl       = admin_url('admin-ajax.php');
 		$nonceSaldo    = wp_create_nonce('cepcerto_consultar_saldo');
 		$nonceCredito  = wp_create_nonce('cepcerto_adicionar_credito');
+		$nonceFinanceiro = wp_create_nonce('cepcerto_financeiro');
 	?>
 		<div id="cepcerto-saldo-notices"></div>
 
-		<div class="card" style="max-width:700px;margin-top:20px;padding:20px;">
+		<div style="display:flex; gap:16px; align-items:flex-start; margin-top:20px;">
+			<div class="card" style="flex:1; padding:20px;">
 			<h2 style="margin-top:0;">Adicionar Crédito</h2>
 			<table class="form-table" role="presentation">
 				<tbody>
@@ -1108,6 +1235,16 @@ class CepCerto_Admin
 					</div>
 				</div>
 			</div>
+			</div>
+			<div class="card" style="flex:1; padding:20px;" id="cepcerto-extrato-card">
+				<h2 style="margin-top:0;">Extrato</h2>
+				<div id="cepcerto-extrato-list" style="max-height:600px; overflow:auto; border:1px solid #eee; border-radius:8px;"></div>
+				<div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+					<button type="button" class="button" id="cepcerto-extrato-reload">Recarregar</button>
+					<button type="button" class="button" id="cepcerto-extrato-load-more">Carregar mais</button>
+					<span id="cepcerto-extrato-status" style="color:#666;"></span>
+				</div>
+			</div>
 		</div>
 
 		<script>
@@ -1115,6 +1252,7 @@ class CepCerto_Admin
 				var ajaxUrl = <?php echo wp_json_encode($ajaxUrl); ?>;
 				var nonceSaldo = <?php echo wp_json_encode($nonceSaldo); ?>;
 				var nonceCredito = <?php echo wp_json_encode($nonceCredito); ?>;
+				var nonceFinanceiro = <?php echo wp_json_encode($nonceFinanceiro); ?>;
 
 				var pollingTimer = null;
 				var pollingAttempts = 0;
@@ -1461,6 +1599,122 @@ class CepCerto_Admin
 					return div.innerHTML;
 				}
 
+				// Extrato (financeiro)
+				var extratoLimit = 20;
+				var extratoOffset = 0;
+				var extratoTotal = null;
+				var extratoLoading = false;
+				var extratoList = document.getElementById('cepcerto-extrato-list');
+				var extratoReloadBtn = document.getElementById('cepcerto-extrato-reload');
+				var extratoLoadMoreBtn = document.getElementById('cepcerto-extrato-load-more');
+				var extratoStatus = document.getElementById('cepcerto-extrato-status');
+
+				function setExtratoStatus(text) {
+					if (extratoStatus) extratoStatus.textContent = text || '';
+				}
+
+				function renderExtratoItems(items, append) {
+					if (!extratoList) return;
+					if (!append) extratoList.innerHTML = '';
+					if (!items || !items.length) {
+						if (!append) {
+							extratoList.innerHTML = '<div style="padding:12px; color:#666;">Sem lançamentos.</div>';
+						}
+						return;
+					}
+					items.forEach(function(it){
+						var row = document.createElement('div');
+						row.style.padding = '10px 12px';
+						row.style.borderBottom = '1px solid #f0f0f0';
+						row.style.display = 'flex';
+						row.style.alignItems = 'center';
+						row.style.justifyContent = 'space-between';
+
+						var left = document.createElement('div');
+						left.innerHTML = '<div style="font-weight:600;">' + escHtml(it.data || it.data_iso || '') + '</div>' +
+							'<div style="color:#555;">' + escHtml(it.descricao || '') + '</div>';
+
+						var right = document.createElement('div');
+						right.style.fontWeight = '600';
+						var color = '#333';
+						if (it.classe === 'positivo') color = '#2e7d32';
+						if (it.classe === 'negativo') color = '#c62828';
+						right.style.color = color;
+						right.textContent = it.valor_br || '';
+
+						row.appendChild(left);
+						row.appendChild(right);
+						extratoList.appendChild(row);
+					});
+				}
+
+				function updateExtratoButtons() {
+					if (!extratoLoadMoreBtn) return;
+					if (extratoTotal === null) {
+						extratoLoadMoreBtn.style.display = '';
+						return;
+					}
+					var canLoadMore = extratoOffset < extratoTotal;
+					extratoLoadMoreBtn.style.display = canLoadMore ? '' : 'none';
+				}
+
+				function loadExtrato(reset) {
+					if (extratoLoading) return;
+					extratoLoading = true;
+					if (reset) {
+						extratoOffset = 0;
+						extratoTotal = null;
+					}
+					if (extratoReloadBtn) extratoReloadBtn.disabled = true;
+					if (extratoLoadMoreBtn) extratoLoadMoreBtn.disabled = true;
+					setExtratoStatus('Carregando...');
+					postAjax('cepcerto_financeiro', {
+						_wpnonce: nonceFinanceiro,
+						limit: extratoLimit,
+						offset: extratoOffset
+					}).then(function(resp){
+						if (!resp || resp.success === false) {
+							var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Erro ao carregar extrato.';
+							showNotice('notice-error', msg);
+							return;
+						}
+						var data = resp.data || {};
+						var items = data.extrato || [];
+						renderExtratoItems(items, !reset);
+						extratoTotal = (typeof data.total === 'number') ? data.total : extratoTotal;
+						extratoOffset += items.length;
+						var showing = extratoOffset;
+						if (extratoTotal !== null && isFinite(extratoTotal)) {
+							setExtratoStatus('Mostrando ' + showing + ' de ' + extratoTotal);
+						} else {
+							setExtratoStatus('Mostrando ' + showing);
+						}
+						updateExtratoButtons();
+					}).catch(function(err){
+						showNotice('notice-error', 'Erro ao carregar extrato.');
+					}).finally(function(){
+						extratoLoading = false;
+						if (extratoReloadBtn) extratoReloadBtn.disabled = false;
+						if (extratoLoadMoreBtn) extratoLoadMoreBtn.disabled = false;
+					});
+				}
+
+				if (extratoReloadBtn) {
+					extratoReloadBtn.addEventListener('click', function(e){
+						e.preventDefault();
+						loadExtrato(true);
+					});
+				}
+				if (extratoLoadMoreBtn) {
+					extratoLoadMoreBtn.addEventListener('click', function(e){
+						e.preventDefault();
+						loadExtrato(false);
+					});
+				}
+
+				// auto-load extrato
+				loadExtrato(true);
+
 				try {
 					var needles = [
 						'Atenção usuário do Melhor Envio',
@@ -1660,6 +1914,37 @@ class CepCerto_Admin
 		wp_send_json_success($result, 200);
 	}
 
+	public function ajax_financeiro()
+	{
+		if (! current_user_can('manage_woocommerce')) {
+			wp_send_json_error(array('message' => 'Sem permissão.'), 403);
+		}
+
+		$nonce = isset($_POST['_wpnonce']) ? sanitize_text_field(wp_unslash($_POST['_wpnonce'])) : '';
+		if (empty($nonce) || ! wp_verify_nonce($nonce, 'cepcerto_financeiro')) {
+			wp_send_json_error(array('message' => 'Nonce inválido.'), 400);
+		}
+
+		$token = get_option('cepcerto_token_cliente_postagem', '');
+		if (empty($token)) {
+			wp_send_json_error(array('message' => 'Token de cliente não configurado.'), 400);
+		}
+
+		$limit = isset($_POST['limit']) ? intval(wp_unslash($_POST['limit'])) : null;
+		$offset = isset($_POST['offset']) ? intval(wp_unslash($_POST['offset'])) : null;
+		if ($limit !== null && $limit <= 0) { $limit = null; }
+		if ($offset !== null && $offset < 0) { $offset = null; }
+
+		$api    = new CepCerto_Api();
+		$result = $api->financeiro($token, $limit, $offset);
+
+		if (is_wp_error($result)) {
+			wp_send_json_error(array('message' => $result->get_error_message()), 400);
+		}
+
+		wp_send_json_success($result, 200);
+	}
+
 	public function ajax_adicionar_credito()
 	{
 		if (! current_user_can('manage_woocommerce')) {
@@ -1745,7 +2030,8 @@ class CepCerto_Admin
 		$produtos = array();
 
 		foreach ($order->get_items() as $item) {
-			$product = $item->get_product();
+			/** @var WC_Order_Item_Product $item */
+			$product = $item->get_product(); // @phpstan-ignore-line - método válido do WooCommerce
 			$qty = max(1, (int) $item->get_quantity());
 
 			if ($product instanceof WC_Product && ! $product->is_virtual()) {
@@ -1758,7 +2044,7 @@ class CepCerto_Admin
 				$totalWeight += $defaultWeightKg * $qty;
 			}
 
-			$itemTotal = (float) $item->get_total();
+			$itemTotal = (float) $item->get_total(); // @phpstan-ignore-line - método válido do WooCommerce
 			$unitPrice = $qty > 0 ? round($itemTotal / $qty, 2) : $itemTotal;
 
 			$produtos[] = array(

@@ -11,6 +11,7 @@ class CepCerto_Api {
 	const URL_VALIDAR_TOKEN = 'https://cepcerto.com/api-validar-token/';
 	const URL_CREDITO = 'https://cepcerto.com/api-credito/';
 	const URL_SALDO = 'https://cepcerto.com/api-saldo/';
+	const URL_FINANCEIRO = 'https://cepcerto.com/api-financeiro/';
 	const URL_COTACAO_POST = 'https://cepcerto.com/api-cotacao/';
 	const URL_COTACAO_FRETE = 'https://cepcerto.com/api-cotacao-frete/';
 	const URL_POSTAGEM = 'https://cepcerto.com/api-postagem/';
@@ -19,6 +20,7 @@ class CepCerto_Api {
 	const URL_POSTAGEM_FRETE = 'https://cepcerto.com/api-postagem-frete/';
 	const URL_CANCELA_POSTAGEM = 'https://cepcerto.com/api-cancela-postagem';
 	const URL_REGISTRO = 'https://cepcerto.com/api-cadastro-wordpress/';
+	const URL_RASTREIO = 'https://cepcerto.com/api-rastreio/';
 
 	const TIMEOUT = 10;
 	const TIMEOUT_CEP = 10;
@@ -98,7 +100,7 @@ class CepCerto_Api {
 			'nome_cliente' => sanitize_text_field( $nome ),
 			'site_url'  => home_url(),
 			'ip'        => $ip,
-			'telefone_cliente' => '1234567890',
+			//'telefone_cliente' => '1234567890',
 			// telefone_cliente?
 		);
 
@@ -161,6 +163,19 @@ class CepCerto_Api {
 		);
 	}
 
+	public function financeiro( $token_cliente_postagem, $limit = null, $offset = null ) {
+		$payload = array(
+			'token_cliente_postagem' => (string) $token_cliente_postagem,
+		);
+		if ( null !== $limit && '' !== $limit ) {
+			$payload['limit'] = (int) $limit;
+		}
+		if ( null !== $offset && '' !== $offset ) {
+			$payload['offset'] = (int) $offset;
+		}
+		return $this->post_json( self::URL_FINANCEIRO, $payload );
+	}
+
 	public function cotacao_post( $payload ) {
 		return $this->post_json( self::URL_COTACAO_POST, (array) $payload );
 	}
@@ -214,6 +229,15 @@ class CepCerto_Api {
 			array(
 				'token_cliente_postagem' => (string) $token_cliente_postagem,
 				'cod_objeto'             => (string) $cod_objeto,
+			)
+		);
+	}
+
+	public function rastreio( $codigo_objeto ) {
+		return $this->post_json(
+			self::URL_RASTREIO,
+			array(
+				'codigo_objeto' => (string) $codigo_objeto,
 			)
 		);
 	}

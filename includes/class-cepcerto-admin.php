@@ -13,7 +13,6 @@ class CepCerto_Admin
 		add_action('admin_init', array($this, 'maybe_redirect_legacy_pages'));
 		add_action('admin_post_cepcerto_download_log', array($this, 'download_log'));
 		add_action('admin_post_cepcerto_reset_settings', array($this, 'handle_reset_settings'));
-		add_action('wp_ajax_cepcerto_test_registro', array($this, 'ajax_test_registro'));
 		add_action('wp_ajax_cepcerto_consultar_cep_origem', array($this, 'ajax_consultar_cep_origem'));
 		add_action('wp_ajax_cepcerto_consultar_saldo', array($this, 'ajax_consultar_saldo'));
 		add_action('wp_ajax_cepcerto_adicionar_credito', array($this, 'ajax_adicionar_credito'));
@@ -82,7 +81,7 @@ class CepCerto_Admin
 		$link = '';
 		$evt = null;
 		if (is_array($track)) {
-			$link = ! empty($track['link_cepcerto']) ? (string) $track['link_cepcerto'] : ('https://www.cepcerto.com/encomenda-rastreio/' . rawurlencode($codigo));
+			$link = ! empty($track['link_cepcerto']) ? (string) $track['link_cepcerto'] : (CepCerto_Api::URL_RASTREIO_ENCOMENDA . rawurlencode($codigo));
 			if (! empty($track['eventos']) && is_array($track['eventos'])) {
 				$evt = $track['eventos'][0];
 			}
@@ -334,19 +333,22 @@ class CepCerto_Admin
 		$baseUrl = add_query_arg(array('page' => 'cepcerto'), admin_url('admin.php'));
 		$ajaxUrl = admin_url('admin-ajax.php');
 		$nonceSaldo = wp_create_nonce('cepcerto_consultar_saldo');
+		$debug = get_option('cepcerto_debug', 'yes');
 		$tabs = array(
 			'sender'   => 'Dados remetente',
 			'pedidos'  => 'Pedidos',
 			'saldo'    => 'Saldo',
-			'logs'     => 'Logs',
 			'settings' => 'Configurações',
 		);
+		if ($debug === 'yes') {
+			$tabs['logs'] = 'Logs';
+		}
 
 ?>
 		<div class="wrap">
 			<div style="display:flex; align-items:center; justify-content:space-between; gap: 12px;">
 				<div style="display:flex; align-items:center; gap: 10px;">
-					<img src="<?php echo esc_url('https://cepcerto.com//imagens/logo-cepcerto.svg'); ?>" alt="CepCerto" style="height: 34px; width: auto;" />
+					<img src="<?php echo esc_url(plugins_url('assets/logo-cepcerto.svg', dirname(__FILE__))); ?>" alt="CepCerto" style="height: 34px; width: auto;" />
 				</div>
 				<div id="cepcerto-header-saldo" style="display:flex; align-items:center; gap: 8px;">
 					<span style="font-weight:600;">Saldo:</span>
@@ -666,6 +668,7 @@ class CepCerto_Admin
 		(function() {
 			var ajaxUrl = <?php echo wp_json_encode($ajaxUrl); ?>;
 			var nonce   = <?php echo wp_json_encode($nonceEtiqueta); ?>;
+			var urlRastreioEncomenda = <?php echo wp_json_encode(CepCerto_Api::URL_RASTREIO_ENCOMENDA); ?>;
 
 			function postAjax(action, payload) {
 				var body = new URLSearchParams();
@@ -696,10 +699,10 @@ class CepCerto_Admin
 				if (declUrl) html += '<a href="' + escAttr(declUrl) + '" target="_blank" style="margin-left:6px;">Declaração</a>';
 				etqCell.innerHTML = html;
 
-				// Atualizar coluna de rastreio
 				if (trackCell && codigo) {
 					var trackHtml = '<code>' + escHtml(codigo) + '</code>';
-					var link = 'https://www.cepcerto.com/encomenda-rastreio/' + encodeURIComponent(codigo);
+					
+					var link = urlRastreioEncomenda + codigo;
 					trackHtml = '<a href="' + escAttr(link) + '" target="_blank">' + trackHtml + '</a>';
 					trackCell.innerHTML = trackHtml;
 				}
@@ -715,7 +718,7 @@ class CepCerto_Admin
 				var orderId = row.getAttribute('data-order-id');
 				etqCell.innerHTML = '<span style="color:#999;">—</span>';
 				
-				// Limpar coluna de rastreio
+
 				if (trackCell) {
 					trackCell.innerHTML = '<span style="color:#999;">—</span>';
 				}
@@ -858,6 +861,12 @@ class CepCerto_Admin
 						</td>
 					</tr>
 					<tr>
+						<th scope="row"><label for="cepcerto_origin_cep">CEP de origem</label></th>
+						<td>
+							<input name="cepcerto_origin_cep" id="cepcerto_origin_cep" type="text" class="regular-text" value="<?php echo esc_attr($origin); ?>" />
+						</td>
+					</tr>
+					<tr>
 						<th scope="row"><label for="cepcerto_logradouro_remetente">Logradouro (obrigatório)</label></th>
 						<td>
 							<input name="cepcerto_logradouro_remetente" id="cepcerto_logradouro_remetente" type="text" class="regular-text" value="<?php echo esc_attr($logradouroRemetente); ?>" />
@@ -879,12 +888,6 @@ class CepCerto_Admin
 						<th scope="row"><label for="cepcerto_complemento_remetente">Complemento (opcional)</label></th>
 						<td>
 							<input name="cepcerto_complemento_remetente" id="cepcerto_complemento_remetente" type="text" class="regular-text" value="<?php echo esc_attr($complementoRemetente); ?>" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="cepcerto_origin_cep">CEP de origem</label></th>
-						<td>
-							<input name="cepcerto_origin_cep" id="cepcerto_origin_cep" type="text" class="regular-text" value="<?php echo esc_attr($origin); ?>" />
 						</td>
 					</tr>
 				</tbody>
@@ -972,7 +975,6 @@ class CepCerto_Admin
 
 				function fillIfEmpty(el, value) {
 					if (!el) return;
-					if (el.value && el.value.trim() !== '') return;
 					el.value = value || '';
 				}
 
@@ -996,7 +998,6 @@ class CepCerto_Admin
 
 				if (cepInput) {
 					cepInput.addEventListener('blur', consultarCep);
-					cepInput.addEventListener('change', consultarCep);
 				}
 
 				if (cpfCnpjInput) {
@@ -1090,61 +1091,53 @@ class CepCerto_Admin
 	private function render_settings_tab()
 	{
 		$token  = get_option('cepcerto_token_cliente_postagem', '');
-		$debug  = get_option('cepcerto_debug', 'no');
+		$debug  = get_option('cepcerto_debug', 'yes');
 
-		$defaultWidth  = get_option('cepcerto_default_width', 10);
-		$defaultHeight = get_option('cepcerto_default_height', 10);
-		$defaultLength = get_option('cepcerto_default_length', 10);
+		$defaultWidth  = get_option('cepcerto_default_width', 15.2);
+		$defaultHeight = get_option('cepcerto_default_height', 10.5);
+		$defaultLength = get_option('cepcerto_default_length', 20.0);
 		$defaultWeight = get_option('cepcerto_default_weight', 1);
 		$minOrderValue = get_option('cepcerto_min_order_value', 50);
-
 	?>
 		<form method="post" action="options.php">
 			<?php settings_fields('cepcerto_settings'); ?>
-			<table class="form-table" role="presentation">
-				<tbody>
-					<tr>
-						<th scope="row"><label for="cepcerto_token_cliente_postagem">Token cliente postagem</label></th>
-						<td>
-							<input name="cepcerto_token_cliente_postagem" id="cepcerto_token_cliente_postagem" type="text" class="regular-text" value="<?php echo esc_attr($token); ?>" readonly />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">Debug</th>
-						<td>
-							<label>
-								<input name="cepcerto_debug" type="checkbox" value="yes" <?php checked($debug, 'yes'); ?> />
-								Ativar log no WooCommerce (source: cepcerto)
-							</label>
-						</td>
-					</tr>
-				</tbody>
-			</table>
 
-			<h2 class="title">Dimensões/Peso padrão (fallback)</h2>
+			<h2 class="title">Tamanho da Caixa / Peso padrão</h2>
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
-						<th scope="row"><label for="cepcerto_default_width">Largura (cm)</label></th>
-						<td><input name="cepcerto_default_width" id="cepcerto_default_width" type="number" step="0.01" value="<?php echo esc_attr($defaultWidth); ?>" /></td>
+						<th scope="row"><label for="cepcerto_default_width">Largura da caixa (cm)</label></th>
+						<td>
+							<input name="cepcerto_default_width" id="cepcerto_default_width" type="number" step="0.01" min="15.2" value="<?php echo esc_attr($defaultWidth); ?>" />
+							<p class="description">Mínimo: 15.2 cm</p>
+						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcerto_default_height">Altura (cm)</label></th>
-						<td><input name="cepcerto_default_height" id="cepcerto_default_height" type="number" step="0.01" value="<?php echo esc_attr($defaultHeight); ?>" /></td>
+						<th scope="row"><label for="cepcerto_default_height">Altura da caixa (cm)</label></th>
+						<td>
+							<input name="cepcerto_default_height" id="cepcerto_default_height" type="number" step="0.01" min="10.5" value="<?php echo esc_attr($defaultHeight); ?>" />
+							<p class="description">Mínimo: 10.5 cm</p>
+						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcerto_default_length">Comprimento (cm)</label></th>
-						<td><input name="cepcerto_default_length" id="cepcerto_default_length" type="number" step="0.01" value="<?php echo esc_attr($defaultLength); ?>" /></td>
+						<th scope="row"><label for="cepcerto_default_length">Comprimento da caixa (cm)</label></th>
+						<td>
+							<input name="cepcerto_default_length" id="cepcerto_default_length" type="number" step="0.01" min="20.0" value="<?php echo esc_attr($defaultLength); ?>" />
+							<p class="description">Mínimo: 20.0 cm</p>
+						</td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="cepcerto_default_weight">Peso (kg)</label></th>
-						<td><input name="cepcerto_default_weight" id="cepcerto_default_weight" type="number" step="0.01" value="<?php echo esc_attr($defaultWeight); ?>" /></td>
+						<td>
+							<input name="cepcerto_default_weight" id="cepcerto_default_weight" type="number" step="0.01" min="0.01" max="30" value="<?php echo esc_attr($defaultWeight); ?>" />
+							<p class="description">Mínimo: maior que 0 kg / Máximo: 30 kg</p>
+						</td>
 					</tr>
 					<tr>
 						<th scope="row"><label for="cepcerto_min_order_value">Valor mínimo da encomenda (R$)</label></th>
 						<td>
 							<input name="cepcerto_min_order_value" id="cepcerto_min_order_value" type="number" step="0.01" min="50" max="35000" value="<?php echo esc_attr($minOrderValue); ?>" />
-							<p class="description">Valor mínimo para cotação (entre R$ 50,00 e R$ 35.000,00). Se o carrinhover for menor, será usado este valor.</p>
+							<p class="description">Valor mínimo para cotação (entre R$ 50,00 e R$ 35.000,00). Se o carrinho for menor, será usado este valor.</p>
 						</td>
 					</tr>
 				</tbody>
@@ -1173,6 +1166,28 @@ class CepCerto_Admin
 								Checkout / Carrinho <span class="description">(obrigatório)</span>
 							</label>
 							<p class="description">Selecione onde a calculadora de frete deve ser exibida. Você pode selecionar mais de uma opção.</p>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2 class="title">Token e Debug</h2>
+			<table class="form-table" role="presentation">
+				<tbody>
+					<tr>
+						<th scope="row"><label for="cepcerto_token_cliente_postagem">Token cliente postagem</label></th>
+						<td>
+							<input name="cepcerto_token_cliente_postagem" id="cepcerto_token_cliente_postagem" type="text" class="regular-text" value="<?php echo esc_attr($token); ?>" readonly />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">Debug</th>
+						<td>
+							<label>
+								<input type="hidden" name="cepcerto_debug" value="no" />
+								<input name="cepcerto_debug" type="checkbox" value="yes" <?php checked($debug, 'yes'); ?> />
+								<?php echo $debug === 'yes' ? 'Desativar' : 'Ativar'; ?>
+							</label>
 						</td>
 					</tr>
 				</tbody>
@@ -1599,7 +1614,6 @@ class CepCerto_Admin
 					return div.innerHTML;
 				}
 
-				// Extrato (financeiro)
 				var extratoLimit = 20;
 				var extratoOffset = 0;
 				var extratoTotal = null;
@@ -1712,7 +1726,6 @@ class CepCerto_Admin
 					});
 				}
 
-				// auto-load extrato
 				loadExtrato(true);
 
 				try {
@@ -1870,24 +1883,6 @@ class CepCerto_Admin
 <?php
 	}
 
-	public function render_saldo_page()
-	{
-		if (! current_user_can('manage_woocommerce')) {
-			return;
-		}
-		wp_safe_redirect(add_query_arg(array('page' => 'cepcerto', 'tab' => 'saldo'), admin_url('admin.php')));
-		exit;
-	}
-
-	public function render_logs_page()
-	{
-		if (! current_user_can('manage_woocommerce')) {
-			return;
-		}
-		wp_safe_redirect(add_query_arg(array('page' => 'cepcerto', 'tab' => 'logs'), admin_url('admin.php')));
-		exit;
-	}
-
 	public function ajax_consultar_saldo()
 	{
 		if (! current_user_can('manage_woocommerce')) {
@@ -2030,8 +2025,7 @@ class CepCerto_Admin
 		$produtos = array();
 
 		foreach ($order->get_items() as $item) {
-			/** @var WC_Order_Item_Product $item */
-			$product = $item->get_product(); // @phpstan-ignore-line - método válido do WooCommerce
+			$product = $item->get_product();
 			$qty = max(1, (int) $item->get_quantity());
 
 			if ($product instanceof WC_Product && ! $product->is_virtual()) {
@@ -2044,7 +2038,7 @@ class CepCerto_Admin
 				$totalWeight += $defaultWeightKg * $qty;
 			}
 
-			$itemTotal = (float) $item->get_total(); // @phpstan-ignore-line - método válido do WooCommerce
+			$itemTotal = (float) $item->get_total();
 			$unitPrice = $qty > 0 ? round($itemTotal / $qty, 2) : $itemTotal;
 
 			$produtos[] = array(
@@ -2079,7 +2073,7 @@ class CepCerto_Admin
 
 		$billingPhone = preg_replace('/\D+/', '', (string) $order->get_billing_phone());
 		if ('' === $billingPhone) {
-			$billingPhone = '11975532552'; //Chumbado
+			$billingPhone = '11975532552'; //TODO: AQUI - telefone fallback chumbado
 		}
 		$billingEmail = (string) $order->get_billing_email();
 
@@ -2093,7 +2087,7 @@ class CepCerto_Admin
 			}
 		}
 		if ('' === $cpfCnpjDest) {
-			$cpfCnpjDest = '44598844884'; //Chumbado
+			$cpfCnpjDest = '44598844884'; //TODO: AQUI - CPF fallback chumbado
 		}
 
 		$shippingAddress1 = (string) $order->get_shipping_address_1();
@@ -2104,7 +2098,7 @@ class CepCerto_Admin
 		$logradouroDest = '' !== $shippingAddress1 ? $shippingAddress1 : $billingAddress1;
 		$complementoDest = '' !== $shippingAddress2 ? $shippingAddress2 : $billingAddress2;
 		if ('' === trim($complementoDest)) {
-			$complementoDest = '-'; //Chumbado
+			$complementoDest = '-'; //TODO: AQUI - complemento fallback chumbado
 		}
 
 		$numeroDest = '';
@@ -2119,7 +2113,7 @@ class CepCerto_Admin
 		if (empty($bairroMeta)) {
 			$bairroMeta = $order->get_meta('_billing_neighborhood', true);
 		}
-		$bairroDest = ! empty($bairroMeta) ? (string) $bairroMeta : 'Centro'; //Chumbado
+		$bairroDest = ! empty($bairroMeta) ? (string) $bairroMeta : 'Centro'; //TODO: AQUI - bairro fallback chumbado
 
 		$payload = array(
 			'token_cliente_postagem'      => $token,
@@ -2329,17 +2323,6 @@ class CepCerto_Admin
 		header('Content-Length: ' . filesize($file));
 		readfile($file);
 		exit;
-	}
-
-	private function tail_file($file, $maxLines = 200)
-	{
-		$lines = @file($file, FILE_IGNORE_NEW_LINES);
-		if (! is_array($lines)) {
-			return '';
-		}
-		$total = count($lines);
-		$start = max(0, $total - (int) $maxLines);
-		return implode("\n", array_slice($lines, $start));
 	}
 
 	private function tail_file_lines($file, $maxLines = 200)

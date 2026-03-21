@@ -5,33 +5,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class CepCerto_Api {
-	const DEFAULT_BASE_URL = 'https://www.cepcerto.com/ws/json-frete';
+	const DEFAULT_BASE_URL = 'https://cepcerto.com/';
 	const URL_VIACEP = 'https://viacep.com.br/ws/';
-	const URL_CADASTRO = 'https://cepcerto.com/api-cadastro/';
-	const URL_VALIDAR_TOKEN = 'https://cepcerto.com/api-validar-token/';
-	const URL_CREDITO = 'https://cepcerto.com/api-credito/';
-	const URL_SALDO = 'https://cepcerto.com/api-saldo/';
-	const URL_FINANCEIRO = 'https://cepcerto.com/api-financeiro/';
-	const URL_COTACAO_POST = 'https://cepcerto.com/api-cotacao/';
-	const URL_COTACAO_FRETE = 'https://cepcerto.com/api-cotacao-frete/';
-	const URL_POSTAGEM = 'https://cepcerto.com/api-postagem/';
-	const URL_ETIQUETA = 'https://cepcerto.com/api-etiqueta/';
-	const URL_CANCELA = 'https://cepcerto.com/api-cancela/';
-	const URL_POSTAGEM_FRETE = 'https://cepcerto.com/api-postagem-frete/';
-	const URL_CANCELA_POSTAGEM = 'https://cepcerto.com/api-cancela-postagem';
-	const URL_REGISTRO = 'https://cepcerto.com/api-cadastro-wordpress/';
-	const URL_RASTREIO = 'https://cepcerto.com/api-rastreio/';
+	const URL_CADASTRO = self::DEFAULT_BASE_URL . 'api-cadastro/';
+	const URL_VALIDAR_TOKEN = self::DEFAULT_BASE_URL . 'api-validar-token/';
+	const URL_CREDITO = self::DEFAULT_BASE_URL . 'api-credito/';
+	const URL_SALDO = self::DEFAULT_BASE_URL . 'api-saldo/';
+	const URL_FINANCEIRO = self::DEFAULT_BASE_URL . 'api-financeiro/';
+	const URL_COTACAO_POST = self::DEFAULT_BASE_URL . 'api-cotacao/';
+	const URL_COTACAO_FRETE = self::DEFAULT_BASE_URL . 'api-cotacao-frete/';
+	const URL_POSTAGEM = self::DEFAULT_BASE_URL . 'api-postagem/';
+	const URL_ETIQUETA = self::DEFAULT_BASE_URL . 'api-etiqueta/';
+	const URL_CANCELA = self::DEFAULT_BASE_URL . 'api-cancela/';
+	const URL_POSTAGEM_FRETE = self::DEFAULT_BASE_URL . 'api-postagem-frete/';
+	const URL_CANCELA_POSTAGEM = self::DEFAULT_BASE_URL . 'api-cancela-postagem';
+	const URL_REGISTRO = self::DEFAULT_BASE_URL . 'api-cadastro-wordpress/';
+	const URL_RASTREIO = self::DEFAULT_BASE_URL . 'api-rastreio/';
+	const URL_RASTREIO_ENCOMENDA = self::DEFAULT_BASE_URL . 'encomenda-rastreio/';
+	const URL_BUSCA_CEP_CORREIOS = 'https://buscacepinter.correios.com.br/app/endereco/index.php';
 
 	const TIMEOUT = 10;
 	const TIMEOUT_CEP = 10;
-
-	public function get_base_url() {
-		return untrailingslashit( self::DEFAULT_BASE_URL );
-	}
-
-	public function get_api_key() {
-		return '';
-	}
 
 	public function get_token_cliente_postagem() {
 		return (string) get_option( 'cepcerto_token_cliente_postagem', '' );
@@ -100,12 +94,7 @@ class CepCerto_Api {
 			'nome_cliente' => sanitize_text_field( $nome ),
 			'site_url'  => home_url(),
 			'ip'        => $ip,
-			//'telefone_cliente' => '1234567890',
-			// telefone_cliente?
 		);
-
-		//$ip = $_SERVER['REMOTE_ADDR'];
-		//echo $ip;
 
 
 		$result = $this->post_json( self::URL_REGISTRO, $payload );
@@ -134,26 +123,6 @@ class CepCerto_Api {
 		);
 	}
 
-	public function cadastro( $email, $nome ) {
-		return $this->post_json(
-			self::URL_CADASTRO,
-			array(
-				'email' => (string) $email,
-				'nome'  => (string) $nome,
-			)
-		);
-	}
-
-	public function validar_token( $email, $codigo ) {
-		return $this->post_json(
-			self::URL_VALIDAR_TOKEN,
-			array(
-				'email'  => (string) $email,
-				'codigo' => (string) $codigo,
-			)
-		);
-	}
-
 	public function saldo( $token_cliente_postagem ) {
 		return $this->post_json(
 			self::URL_SALDO,
@@ -176,10 +145,6 @@ class CepCerto_Api {
 		return $this->post_json( self::URL_FINANCEIRO, $payload );
 	}
 
-	public function cotacao_post( $payload ) {
-		return $this->post_json( self::URL_COTACAO_POST, (array) $payload );
-	}
-
 	public function quote_frete( $token_cliente_postagem, $cep_remetente, $cep_destinatario, $peso, $altura, $largura, $comprimento, $valor_encomenda ) {
 		$payload = array(
 			'token_cliente_postagem' => (string) $token_cliente_postagem,
@@ -193,30 +158,6 @@ class CepCerto_Api {
 		);
 
 		return $this->post_json( self::URL_COTACAO_FRETE, $payload );
-	}
-
-	public function gerar_pre_postagem( $payload ) {
-		return $this->post_json( self::URL_POSTAGEM, (array) $payload );
-	}
-
-	public function etiqueta( $token_cliente_postagem, $recibo ) {
-		return $this->post_json(
-			self::URL_ETIQUETA,
-			array(
-				'token_cliente_postagem' => (string) $token_cliente_postagem,
-				'recibo'                 => (string) $recibo,
-			)
-		);
-	}
-
-	public function cancela( $token_cliente_postagem, $recibo ) {
-		return $this->post_json(
-			self::URL_CANCELA,
-			array(
-				'token_cliente_postagem' => (string) $token_cliente_postagem,
-				'recibo'                 => (string) $recibo,
-			)
-		);
 	}
 
 	public function postagem_frete( $payload ) {
@@ -272,21 +213,10 @@ class CepCerto_Api {
 		}
 
 		if ( null === $data ) {
-			
-			return new WP_Error( 'cepcerto_invalid_json', '$payload: ' . json_encode( $payload ) . ' $response: ' . json_encode( $response ) );
+			return new WP_Error( 'cepcerto_invalid_json', 'Resposta inválida da API.' );
 		}
 
 		return $data;
-	}
-
-	private function normalize_number( $value ) {
-		$value = (string) $value;
-		$value = str_replace( ',', '.', $value );
-		$value = preg_replace( '/[^0-9.]/', '', $value );
-		if ( '' === $value ) {
-			return '0';
-		}
-		return $value;
 	}
 
 	private function format_cep( $cep ) {

@@ -161,37 +161,6 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				}
 			}
 
-			// Tentar extrair dados do novo formato (array de serviços)
-			if ( isset( $data['servicos'] ) && is_array( $data['servicos'] ) ) {
-				foreach ( $data['servicos'] as $servico ) {
-					if ( isset( $servico['servico'] ) && strtoupper( $servico['servico'] ) === $service ) {
-						$price = isset( $servico['valor'] ) ? (float) str_replace( ',', '.', (string) $servico['valor'] ) : null;
-						$days  = isset( $servico['prazo'] ) ? (int) $servico['prazo'] : null;
-						break;
-					}
-				}
-			}
-
-			// Tentar formato antigo como fallback
-			if ( ! isset( $price ) ) {
-				if ( 'PAC' === $service ) {
-					$price = isset( $data['valorpac'] ) ? (float) str_replace( ',', '.', (string) $data['valorpac'] ) : null;
-					$days  = isset( $data['prazopac'] ) ? (int) preg_replace( '/\D+/', '', (string) $data['prazopac'] ) : null;
-				}
-
-				if ( 'SEDEX' === $service ) {
-					$price = isset( $data['valorsedex'] ) ? (float) str_replace( ',', '.', (string) $data['valorsedex'] ) : null;
-					$days  = isset( $data['prazosedex'] ) ? (int) preg_replace( '/\D+/', '', (string) $data['prazosedex'] ) : null;
-				}
-			}
-
-			// Tentar formato genérico (serviço como chave direta)
-			if ( ! isset( $price ) && isset( $data[ strtolower( $service ) ] ) ) {
-				$servico_data = $data[ strtolower( $service ) ];
-				$price = isset( $servico_data['valor'] ) ? (float) str_replace( ',', '.', (string) $servico_data['valor'] ) : null;
-				$days  = isset( $servico_data['prazo'] ) ? (int) preg_replace( '/\D+/', '', (string) $servico_data['prazo'] ) : null;
-			}
-
 			if ( empty( $price ) ) {
 				return false;
 			}
@@ -243,7 +212,6 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 					continue;
 				}
 
-				/** @var WC_Product $product */
 				$product  = $item['data'];
 				$quantity = isset( $item['quantity'] ) ? (int) $item['quantity'] : 1;
 

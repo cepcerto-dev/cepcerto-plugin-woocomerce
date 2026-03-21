@@ -73,7 +73,7 @@ class CepCerto_Frontend {
 				>Calcular</button>
 			</div>
 			<span class="cepcerto-calculator__link">
-				<a href="https://buscacepinter.correios.com.br/app/endereco/index.php" target="_blank" rel="noopener noreferrer">Não sei meu CEP</a>
+				<a href="<?php echo esc_url( CepCerto_Api::URL_BUSCA_CEP_CORREIOS ); ?>" target="_blank" rel="noopener noreferrer">Não sei meu CEP</a>
 			</span>
 			<div id="cepcerto-result" class="cepcerto-result"></div>
 		</div>

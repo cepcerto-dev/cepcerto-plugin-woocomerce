@@ -1,17 +1,70 @@
 <?php
+/**
+ * CepCerto Base Shipping Method Class.
+ *
+ * Abstract base class for CepCerto shipping methods.
+ *
+ * @package CepCerto
+ * @since 1.0.0
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit; // Exit if accessed directly.
 }
 
 if ( class_exists( 'WC_Shipping_Method' ) ) {
+	/**
+	 * Base Shipping Method Class.
+	 *
+	 * @since 1.0.0
+	 */
 	abstract class WC_CepCerto_Shipping extends WC_Shipping_Method {
+		/**
+		 * Shipping service identifier.
+		 *
+		 * @since 1.0.0
+		 * @var string
+		 */
 		public $service = '';
+
+		/**
+		 * Shipping method title.
+		 *
+		 * @since 1.0.0
+		 * @var string
+		 */
 		public $title = '';
+
+		/**
+		 * Additional delivery days.
+		 *
+		 * @since 1.0.0
+		 * @var int
+		 */
 		public $additional_time = 0;
+
+		/**
+		 * Additional tax amount.
+		 *
+		 * @since 1.0.0
+		 * @var float
+		 */
 		public $additional_tax = 0;
+
+		/**
+		 * Percentage tax.
+		 *
+		 * @since 1.0.0
+		 * @var float
+		 */
 		public $percent_tax = 0;
 
+		/**
+		 * Constructor.
+		 *
+		 * @since 1.0.0
+		 * @param int $instance_id Shipping instance ID.
+		 */
 		public function __construct( $instance_id = 0 ) {
 			$this->instance_id = absint( $instance_id );
 
@@ -36,39 +89,45 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			);
 		}
 
+		/**
+		 * Initialize form fields.
+		 *
+		 * @since 1.0.0
+		 * @return void
+		 */
 		public function init_form_fields() {
 			$this->instance_form_fields = array(
 				'enabled'         => array(
-					'title'   => 'Ativar',
+					'title'   => __( 'Ativar', 'cepcerto' ),
 					'type'    => 'checkbox',
-					'label'   => 'Ativar este método de envio',
+					'label'   => __( 'Ativar este método de envio', 'cepcerto' ),
 					'default' => 'yes',
 				),
 				'title'           => array(
-					'title'   => 'Título',
+					'title'   => __( 'Título', 'cepcerto' ),
 					'type'    => 'text',
 					'default' => $this->method_title,
 				),
 				'additional_tax'  => array(
-					'title'       => 'Taxa adicional',
+					'title'       => __( 'Taxa adicional', 'cepcerto' ),
 					'type'        => 'text',
-					'description' => 'Valor adicional sobre o valor do frete cobrado ao cliente final',
+					'description' => __( 'Valor adicional sobre o valor do frete cobrado ao cliente final', 'cepcerto' ),
 					'desc_tip'    => true,
 					'default'     => '0',
 					'placeholder' => '0',
 				),
 				'percent_tax'     => array(
-					'title'       => 'Percentual de Taxa adicional',
+					'title'       => __( 'Percentual de Taxa adicional', 'cepcerto' ),
 					'type'        => 'text',
-					'description' => 'Adiciona um percentual sobre o valor do frete cobrado ao cliente final',
+					'description' => __( 'Adiciona um percentual sobre o valor do frete cobrado ao cliente final', 'cepcerto' ),
 					'desc_tip'    => true,
 					'default'     => '0',
 					'placeholder' => '0',
 				),
 				'additional_time' => array(
-					'title'       => 'Dias extras',
+					'title'       => __( 'Dias extras', 'cepcerto' ),
 					'type'        => 'text',
-					'description' => 'Adicional de dias no prazo final do frete',
+					'description' => __( 'Adicional de dias no prazo final do frete', 'cepcerto' ),
 					'desc_tip'    => true,
 					'default'     => '0',
 					'placeholder' => '0',
@@ -76,17 +135,24 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			);
 		}
 
+		/**
+		 * Calculate shipping cost.
+		 *
+		 * @since 1.0.0
+		 * @param array $package Package information.
+		 * @return void
+		 */
 		public function calculate_shipping( $package = array() ) {
 			$destinationCep = isset( $package['destination']['postcode'] )
 				? preg_replace( '/\D+/', '', (string) $package['destination']['postcode'] )
 				: '';
 
-			if ( strlen( $destinationCep ) !== 8 ) {
+			if ( 8 !== strlen( $destinationCep ) ) {
 				return;
 			}
 
 			$originCep = preg_replace( '/\D+/', '', (string) get_option( 'cepcerto_origin_cep', '' ) );
-			if ( strlen( $originCep ) !== 8 ) {
+			if ( 8 !== strlen( $originCep ) ) {
 				return;
 			}
 
@@ -131,6 +197,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			$this->add_rate( $rate );
 		}
 
+		/**
+		 * Build shipping rate from API response.
+		 *
+		 * @since 1.0.0
+		 * @param array $data API response data.
+		 * @return array|false Shipping rate or false on failure.
+		 */
 		protected function build_rate_from_response( $data ) {
 			$service = strtoupper( (string) $this->service );
 
@@ -170,14 +243,15 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			$extraDays     = (int) $this->additional_time;
 
 			$cost = $price + $additionalTax;
-			if ( $percentTax != 0 ) {
+			if ( 0 !== $percentTax ) {
 				$cost += ( $price * ( $percentTax / 100 ) );
 			}
 
 			$label = $this->title;
 			if ( ! empty( $days ) ) {
 				$totalDays = $days + $extraDays;
-				$label    .= sprintf( ' (%d dia(s))', $totalDays );
+				/* translators: %d: number of days */
+				$label .= sprintf( _n( ' (%d dia)', ' (%d dias)', $totalDays, 'cepcerto' ), $totalDays );
 			}
 
 			return array(
@@ -193,6 +267,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			);
 		}
 
+		/**
+		 * Get package dimensions and weight.
+		 *
+		 * @since 1.0.0
+		 * @param array $package Package information.
+		 * @return array|false Package dimensions or false on failure.
+		 */
 		protected function get_package_dimensions( $package ) {
 			$default = $this->get_default_dimensions();
 
@@ -244,6 +325,12 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			);
 		}
 
+		/**
+		 * Get default dimensions from settings.
+		 *
+		 * @since 1.0.0
+		 * @return array Default dimensions.
+		 */
 		protected function get_default_dimensions() {
 			return array(
 				'width'  => $this->to_float( get_option( 'cepcerto_default_width', 10 ) ),
@@ -253,6 +340,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			);
 		}
 
+		/**
+		 * Convert dimension to centimeters.
+		 *
+		 * @since 1.0.0
+		 * @param float $value Dimension value.
+		 * @return float Converted value in cm.
+		 */
 		protected function convert_dimension_to_cm( $value ) {
 			$unit = strtolower( (string) get_option( 'woocommerce_dimension_unit', 'cm' ) );
 			$value = (float) str_replace( ',', '.', (string) $value );
@@ -267,6 +361,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			return $value;
 		}
 
+		/**
+		 * Convert weight to kilograms.
+		 *
+		 * @since 1.0.0
+		 * @param float $value Weight value.
+		 * @return float Converted value in kg.
+		 */
 		protected function convert_weight_to_kg( $value ) {
 			$unit = strtolower( (string) get_option( 'woocommerce_weight_unit', 'kg' ) );
 			$value = (float) str_replace( ',', '.', (string) $value );
@@ -278,11 +379,25 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			return $value;
 		}
 
+		/**
+		 * Format number for API request.
+		 *
+		 * @since 1.0.0
+		 * @param float $value Value to format.
+		 * @return string Formatted number.
+		 */
 		protected function format_number( $value ) {
 			$value = (float) $value;
 			return rtrim( rtrim( number_format( $value, 3, '.', '' ), '0' ), '.' );
 		}
 
+		/**
+		 * Convert value to float.
+		 *
+		 * @since 1.0.0
+		 * @param mixed $value Value to convert.
+		 * @return float Converted value.
+		 */
 		protected function to_float( $value ) {
 			$value = (string) $value;
 			$value = str_replace( ',', '.', $value );
@@ -293,6 +408,14 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 			return (float) $value;
 		}
 
+		/**
+		 * Log an error message.
+		 *
+		 * @since 1.0.0
+		 * @param string $message Error message.
+		 * @param array  $context Additional context. Default empty array.
+		 * @return void
+		 */
 		protected function log_error( $message, $context = array() ) {
 			if ( ! class_exists( 'WC_Logger' ) ) {
 				return;

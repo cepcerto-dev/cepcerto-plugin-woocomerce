@@ -1,45 +1,123 @@
 <?php
+/**
+ * CepCerto API Class.
+ *
+ * Handles all API requests to CepCerto service.
+ *
+ * @package CepCerto
+ * @since 1.0.0
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+	exit; // Exit if accessed directly.
 }
 
+/**
+ * CepCerto API Class.
+ *
+ * @since 1.0.0
+ */
 class CepCerto_Api {
+	/**
+	 * CepCerto base URL.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	const DEFAULT_BASE_URL = 'https://cepcerto.com/';
+
+	/**
+	 * ViaCEP API URL.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	const URL_VIACEP = 'https://viacep.com.br/ws/';
-	const URL_CADASTRO = self::DEFAULT_BASE_URL . 'api-cadastro/';
-	const URL_VALIDAR_TOKEN = self::DEFAULT_BASE_URL . 'api-validar-token/';
-	const URL_CREDITO = self::DEFAULT_BASE_URL . 'api-credito/';
-	const URL_SALDO = self::DEFAULT_BASE_URL . 'api-saldo/';
-	const URL_FINANCEIRO = self::DEFAULT_BASE_URL . 'api-financeiro/';
-	const URL_COTACAO_POST = self::DEFAULT_BASE_URL . 'api-cotacao/';
-	const URL_COTACAO_FRETE = self::DEFAULT_BASE_URL . 'api-cotacao-frete/';
-	const URL_POSTAGEM = self::DEFAULT_BASE_URL . 'api-postagem/';
-	const URL_ETIQUETA = self::DEFAULT_BASE_URL . 'api-etiqueta/';
-	const URL_CANCELA = self::DEFAULT_BASE_URL . 'api-cancela/';
-	const URL_POSTAGEM_FRETE = self::DEFAULT_BASE_URL . 'api-postagem-frete/';
-	const URL_CANCELA_POSTAGEM = self::DEFAULT_BASE_URL . 'api-cancela-postagem';
-	const URL_REGISTRO = self::DEFAULT_BASE_URL . 'api-cadastro-wordpress/';
-	const URL_RASTREIO = self::DEFAULT_BASE_URL . 'api-rastreio/';
+
+	/**
+	 * CepCerto API endpoints.
+	 *
+	 * @since 1.0.0
+	 */
+	const URL_CADASTRO          = self::DEFAULT_BASE_URL . 'api-cadastro/';
+	const URL_VALIDAR_TOKEN     = self::DEFAULT_BASE_URL . 'api-validar-token/';
+	const URL_CREDITO           = self::DEFAULT_BASE_URL . 'api-credito/';
+	const URL_SALDO             = self::DEFAULT_BASE_URL . 'api-saldo/';
+	const URL_FINANCEIRO        = self::DEFAULT_BASE_URL . 'api-financeiro/';
+	const URL_COTACAO_POST      = self::DEFAULT_BASE_URL . 'api-cotacao/';
+	const URL_COTACAO_FRETE     = self::DEFAULT_BASE_URL . 'api-cotacao-frete/';
+	const URL_POSTAGEM          = self::DEFAULT_BASE_URL . 'api-postagem/';
+	const URL_ETIQUETA          = self::DEFAULT_BASE_URL . 'api-etiqueta/';
+	const URL_CANCELA           = self::DEFAULT_BASE_URL . 'api-cancela/';
+	const URL_POSTAGEM_FRETE    = self::DEFAULT_BASE_URL . 'api-postagem-frete/';
+	const URL_CANCELA_POSTAGEM  = self::DEFAULT_BASE_URL . 'api-cancela-postagem';
+	const URL_REGISTRO          = self::DEFAULT_BASE_URL . 'api-cadastro-wordpress/';
+	const URL_RASTREIO          = self::DEFAULT_BASE_URL . 'api-rastreio/';
 	const URL_RASTREIO_ENCOMENDA = self::DEFAULT_BASE_URL . 'encomenda-rastreio/';
+
+	/**
+	 * Correios CEP search URL.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	const URL_BUSCA_CEP_CORREIOS = 'https://buscacepinter.correios.com.br/app/endereco/index.php';
 
+	/**
+	 * API request timeout in seconds.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	const TIMEOUT = 10;
+
+	/**
+	 * CEP lookup timeout in seconds.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	const TIMEOUT_CEP = 10;
 
+	/**
+	 * Get the CepCerto client token.
+	 *
+	 * @since 1.0.0
+	 * @return string The client token.
+	 */
 	public function get_token_cliente_postagem() {
 		return (string) get_option( 'cepcerto_token_cliente_postagem', '' );
 	}
 
+	/**
+	 * Get shipping quote.
+	 *
+	 * @since 1.0.0
+	 * @param string $cep_origem      Origin postal code.
+	 * @param string $cep_destino     Destination postal code.
+	 * @param float  $peso            Package weight in kg.
+	 * @param float  $altura          Package height in cm.
+	 * @param float  $largura         Package width in cm.
+	 * @param float  $comprimento     Package length in cm.
+	 * @param float  $valor_encomenda Package value. Default 0.
+	 * @return array|WP_Error Quote data or error.
+	 */
 	public function quote_get( $cep_origem, $cep_destino, $peso, $altura, $largura, $comprimento, $valor_encomenda = 0 ) {
 		$token = $this->get_token_cliente_postagem();
 		return $this->quote_frete( $token, $cep_origem, $cep_destino, $peso, $altura, $largura, $comprimento, $valor_encomenda );
 	}
 
+	/**
+	 * Lookup postal code information via ViaCEP.
+	 *
+	 * @since 1.0.0
+	 * @param string $cep Postal code to lookup.
+	 * @return array|WP_Error Address data or error.
+	 */
 	public function consultar_cep( $cep ) {
 		$cep = preg_replace( '/\D+/', '', (string) $cep );
-		if ( strlen( $cep ) !== 8 ) {
-			return new WP_Error( 'cepcerto_invalid_cep', 'CEP inválido.' );
+		if ( 8 !== strlen( $cep ) ) {
+			return new WP_Error( 'cepcerto_invalid_cep', __( 'CEP inválido.', 'cepcerto' ) );
 		}
 
 		$url = trailingslashit( self::URL_VIACEP ) . rawurlencode( $cep ) . '/json/';
@@ -70,20 +148,28 @@ class CepCerto_Api {
 		}
 
 		if ( null === $data || ! is_array( $data ) ) {
-			return new WP_Error( 'cepcerto_invalid_json', 'Resposta inválida (não-JSON).' );
+			return new WP_Error( 'cepcerto_invalid_json', __( 'Resposta inválida (não-JSON).', 'cepcerto' ) );
 		}
 
 		if ( isset( $data['erro'] ) && $data['erro'] ) {
-			return new WP_Error( 'cepcerto_cep_not_found', 'CEP não encontrado.' );
+			return new WP_Error( 'cepcerto_cep_not_found', __( 'CEP não encontrado.', 'cepcerto' ) );
 		}
 
 		return $data;
 	}
 
+	/**
+	 * Register plugin installation with CepCerto.
+	 *
+	 * @since 1.0.0
+	 * @param string $email Customer email.
+	 * @param string $nome  Customer name.
+	 * @return array|WP_Error Registration result or error.
+	 */
 	public function registrar_instalacao( $email, $nome ) {
 		$ip = '';
 		if ( isset( $_SERVER['REMOTE_ADDR'] ) ) {
-			$ip = (string) $_SERVER['REMOTE_ADDR'];
+			$ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) );
 		}
 
 		$payload = array(
@@ -113,6 +199,14 @@ class CepCerto_Api {
 		);
 	}
 
+	/**
+	 * Add credit to account.
+	 *
+	 * @since 1.0.0
+	 * @param string $token_cliente_postagem Client token.
+	 * @param float  $valor_credito          Credit amount.
+	 * @return array|WP_Error Credit result or error.
+	 */
 	public function credito( $token_cliente_postagem, $valor_credito ) {
 		return $this->post_json(
 			self::URL_CREDITO,
@@ -123,6 +217,13 @@ class CepCerto_Api {
 		);
 	}
 
+	/**
+	 * Get account balance.
+	 *
+	 * @since 1.0.0
+	 * @param string $token_cliente_postagem Client token.
+	 * @return array|WP_Error Balance data or error.
+	 */
 	public function saldo( $token_cliente_postagem ) {
 		return $this->post_json(
 			self::URL_SALDO,
@@ -132,6 +233,15 @@ class CepCerto_Api {
 		);
 	}
 
+	/**
+	 * Get financial transactions.
+	 *
+	 * @since 1.0.0
+	 * @param string   $token_cliente_postagem Client token.
+	 * @param int|null $limit                  Query limit. Default null.
+	 * @param int|null $offset                 Query offset. Default null.
+	 * @return array|WP_Error Financial data or error.
+	 */
 	public function financeiro( $token_cliente_postagem, $limit = null, $offset = null ) {
 		$payload = array(
 			'token_cliente_postagem' => (string) $token_cliente_postagem,
@@ -145,6 +255,20 @@ class CepCerto_Api {
 		return $this->post_json( self::URL_FINANCEIRO, $payload );
 	}
 
+	/**
+	 * Get shipping quote from CepCerto.
+	 *
+	 * @since 1.0.0
+	 * @param string $token_cliente_postagem Client token.
+	 * @param string $cep_remetente          Sender postal code.
+	 * @param string $cep_destinatario       Recipient postal code.
+	 * @param float  $peso                   Package weight in kg.
+	 * @param float  $altura                 Package height in cm.
+	 * @param float  $largura                Package width in cm.
+	 * @param float  $comprimento            Package length in cm.
+	 * @param float  $valor_encomenda        Package value.
+	 * @return array|WP_Error Quote data or error.
+	 */
 	public function quote_frete( $token_cliente_postagem, $cep_remetente, $cep_destinatario, $peso, $altura, $largura, $comprimento, $valor_encomenda ) {
 		$payload = array(
 			'token_cliente_postagem' => (string) $token_cliente_postagem,
@@ -160,10 +284,25 @@ class CepCerto_Api {
 		return $this->post_json( self::URL_COTACAO_FRETE, $payload );
 	}
 
+	/**
+	 * Create shipping label.
+	 *
+	 * @since 1.0.0
+	 * @param array $payload Label data.
+	 * @return array|WP_Error Label result or error.
+	 */
 	public function postagem_frete( $payload ) {
 		return $this->post_json( self::URL_POSTAGEM_FRETE, (array) $payload );
 	}
 
+	/**
+	 * Cancel shipping label.
+	 *
+	 * @since 1.0.0
+	 * @param string $token_cliente_postagem Client token.
+	 * @param string $cod_objeto             Tracking code.
+	 * @return array|WP_Error Cancellation result or error.
+	 */
 	public function cancela_postagem( $token_cliente_postagem, $cod_objeto ) {
 		return $this->post_json(
 			self::URL_CANCELA_POSTAGEM,
@@ -174,6 +313,13 @@ class CepCerto_Api {
 		);
 	}
 
+	/**
+	 * Track package.
+	 *
+	 * @since 1.0.0
+	 * @param string $codigo_objeto Tracking code.
+	 * @return array|WP_Error Tracking data or error.
+	 */
 	public function rastreio( $codigo_objeto ) {
 		return $this->post_json(
 			self::URL_RASTREIO,
@@ -183,6 +329,14 @@ class CepCerto_Api {
 		);
 	}
 
+	/**
+	 * Make a POST request with JSON payload.
+	 *
+	 * @since 1.0.0
+	 * @param string $url     Request URL.
+	 * @param array  $payload Request payload.
+	 * @return array|WP_Error Response data or error.
+	 */
 	public function post_json( $url, $payload ) {
 		$start = microtime( true );
 		$response = wp_remote_post(
@@ -213,16 +367,30 @@ class CepCerto_Api {
 		}
 
 		if ( null === $data ) {
-			return new WP_Error( 'cepcerto_invalid_json', 'Resposta inválida da API.' );
+			return new WP_Error( 'cepcerto_invalid_json', __( 'Resposta inválida da API.', 'cepcerto' ) );
 		}
 
 		return $data;
 	}
 
+	/**
+	 * Format postal code (remove non-digits).
+	 *
+	 * @since 1.0.0
+	 * @param string $cep Postal code.
+	 * @return string Formatted postal code.
+	 */
 	private function format_cep( $cep ) {
 		return preg_replace( '/\D+/', '', (string) $cep );
 	}
 
+	/**
+	 * Format decimal value.
+	 *
+	 * @since 1.0.0
+	 * @param mixed $value Value to format.
+	 * @return string Formatted decimal value.
+	 */
 	private function format_decimal( $value ) {
 		$value = (string) $value;
 		$value = str_replace( ',', '.', $value );

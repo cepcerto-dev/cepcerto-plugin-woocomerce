@@ -1,13 +1,32 @@
 <?php
+/**
+ * CepCerto Admin Class.
+ *
+ * Handles all admin area functionality including settings, orders management,
+ * and integration with WooCommerce admin.
+ *
+ * @package CepCerto
+ * @since 1.0.0
+ */
 
-if (! defined('ABSPATH')) {
-	exit;
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
 }
 
-class CepCerto_Admin
-{
-	public function init()
-	{
+/**
+ * Admin Class.
+ *
+ * @since 1.0.0
+ */
+class CepCerto_Admin {
+
+	/**
+	 * Initialize admin features.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function init() {
 		add_action('admin_menu', array($this, 'register_menu'));
 		add_action('admin_init', array($this, 'register_settings'));
 		add_action('admin_init', array($this, 'maybe_redirect_legacy_pages'));
@@ -26,15 +45,27 @@ class CepCerto_Admin
 		add_action('woocommerce_shop_order_list_table_custom_column', array($this, 'render_wc_order_tracking_column_hpos'), 20, 2);
 	}
 
-	private function get_tracking_cell_html($order)
-	{
+	/**
+	 * Get tracking cell HTML.
+	 *
+	 * @since 1.0.0
+	 * @param WC_Order $order Order object.
+	 * @return string HTML output.
+	 */
+	private function get_tracking_cell_html( $order ) {
 		ob_start();
 		$this->echo_tracking_cell($order);
 		return (string) ob_get_clean();
 	}
 
-	public function add_wc_order_tracking_column($columns)
-	{
+	/**
+	 * Add tracking column to orders table.
+	 *
+	 * @since 1.0.0
+	 * @param array $columns Existing columns.
+	 * @return array Modified columns.
+	 */
+	public function add_wc_order_tracking_column( $columns ) {
 		if (! is_array($columns)) {
 			$columns = array();
 		}
@@ -125,8 +156,13 @@ class CepCerto_Admin
 		return $result;
 	}
 
-	public function register_menu()
-	{
+	/**
+	 * Register admin menu.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_menu() {
 		add_menu_page(
 			'CepCerto',
 			'CepCerto',
@@ -158,8 +194,13 @@ class CepCerto_Admin
 		}
 	}
 
-	public function register_settings()
-	{
+	/**
+	 * Register plugin settings.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_settings() {
 		register_setting(
 			'cepcerto_settings',
 			'cepcerto_token_cliente_postagem',
@@ -1175,9 +1216,19 @@ class CepCerto_Admin
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
-						<th scope="row"><label for="cepcerto_token_cliente_postagem">Token cliente postagem</label></th>
+						<th scope="row">Token cliente postagem</th>
 						<td>
-							<input name="cepcerto_token_cliente_postagem" id="cepcerto_token_cliente_postagem" type="text" class="regular-text" value="<?php echo esc_attr($token); ?>" readonly />
+							<?php
+							$masked_token = '';
+							if (strlen($token) > 8) {
+								$masked_token = substr($token, 0, 4) . '...' . substr($token, -4);
+							} elseif (strlen($token) > 0) {
+								$masked_token = '****';
+							} else {
+								$masked_token = 'Não configurado';
+							}
+							?>
+							<code style="font-size: 14px; padding: 4px 8px; background: #f0f0f0; border-radius: 3px;"><?php echo esc_html($masked_token); ?></code>
 						</td>
 					</tr>
 					<tr>
@@ -1195,12 +1246,6 @@ class CepCerto_Admin
 
 			<?php submit_button(); ?>
 		</form>
-		<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-			<input type="hidden" name="action" value="cepcerto_reset_settings" />
-			<?php wp_nonce_field('cepcerto_reset_settings'); ?>
-			<?php submit_button('Resetar configurações e reiniciar', 'delete', 'submit', false, array('onclick' => "return confirm('Tem certeza? Isso irá remover as configurações do CepCerto e reiniciar o processo.');")); ?>
-		</form>
-
 
 	<?php
 	}

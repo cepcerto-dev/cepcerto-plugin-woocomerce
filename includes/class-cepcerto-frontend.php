@@ -52,9 +52,11 @@ class CepCerto_Frontend {
 			return;
 		}
 
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+
 		wp_register_style(
 			'cepcerto-product',
-			CEPCERTO_PLUGIN_URL . 'assets/product-calculator.css',
+			CEPCERTO_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.css',
 			array(),
 			CEPCERTO_VERSION
 		);
@@ -62,7 +64,7 @@ class CepCerto_Frontend {
 
 		wp_register_script(
 			'cepcerto-product',
-			CEPCERTO_PLUGIN_URL . 'assets/product-calculator.js',
+			CEPCERTO_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.js',
 			array(),
 			CEPCERTO_VERSION,
 			true

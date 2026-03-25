@@ -58,11 +58,12 @@ class CepCerto_Admin {
 			return;
 		}
 
-		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'sender'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tab    = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'sender'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 		wp_enqueue_script(
 			'cepcerto-admin-header',
-			CEPCERTO_PLUGIN_URL . 'assets/admin-header.js',
+			CEPCERTO_PLUGIN_URL . 'assets/admin-header' . $suffix . '.js',
 			array(),
 			CEPCERTO_VERSION,
 			true
@@ -79,7 +80,7 @@ class CepCerto_Admin {
 		if ( 'sender' === $tab ) {
 			wp_enqueue_script(
 				'cepcerto-admin-sender',
-				CEPCERTO_PLUGIN_URL . 'assets/admin-sender.js',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-sender' . $suffix . '.js',
 				array(),
 				CEPCERTO_VERSION,
 				true
@@ -97,7 +98,7 @@ class CepCerto_Admin {
 		if ( 'pedidos' === $tab ) {
 			wp_enqueue_script(
 				'cepcerto-admin-orders',
-				CEPCERTO_PLUGIN_URL . 'assets/admin-orders.js',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-orders' . $suffix . '.js',
 				array(),
 				CEPCERTO_VERSION,
 				true
@@ -116,7 +117,7 @@ class CepCerto_Admin {
 		if ( 'saldo' === $tab ) {
 			wp_enqueue_script(
 				'cepcerto-admin-saldo',
-				CEPCERTO_PLUGIN_URL . 'assets/admin-saldo.js',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-saldo' . $suffix . '.js',
 				array(),
 				CEPCERTO_VERSION,
 				true
@@ -136,7 +137,7 @@ class CepCerto_Admin {
 		if ( 'logs' === $tab ) {
 			wp_enqueue_script(
 				'cepcerto-admin-logs',
-				CEPCERTO_PLUGIN_URL . 'assets/admin-logs.js',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-logs' . $suffix . '.js',
 				array(),
 				CEPCERTO_VERSION,
 				true
@@ -168,7 +169,7 @@ class CepCerto_Admin {
 		if ( ! is_array( $columns ) ) {
 			$columns = array();
 		}
-		$columns['cepcerto_rastreio'] = 'Rastreio';
+		$columns['cepcerto_rastreio'] = __( 'Rastreio', 'cepcerto' );
 		return $columns;
 	}
 

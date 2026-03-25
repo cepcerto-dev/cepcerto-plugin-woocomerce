@@ -48,7 +48,7 @@ class CepCerto_Logger {
 	 */
 	public static function log( $level, $message, $context = array() ) {
 		$context = self::sanitize_context( (array) $context );
-		$line = sprintf(
+		$line    = sprintf(
 			"[%s] [%s] %s %s\n",
 			gmdate( 'Y-m-d H:i:s' ),
 			strtoupper( (string) $level ),
@@ -103,7 +103,7 @@ class CepCerto_Logger {
 	 */
 	public static function get_log_file_path() {
 		$upload = wp_upload_dir();
-		$dir = trailingslashit( $upload['basedir'] ) . 'cepcerto-logs';
+		$dir    = trailingslashit( $upload['basedir'] ) . 'cepcerto-logs';
 		wp_mkdir_p( $dir );
 
 		$filename = 'cepcerto-' . gmdate( 'Y-m-d' ) . '.log';
@@ -150,7 +150,7 @@ class CepCerto_Logger {
 	 * @return void
 	 */
 	private static function write_line( $line ) {
-		$file = self::get_log_file_path();
+		$file   = self::get_log_file_path();
 		$result = @file_put_contents( $file, $line, FILE_APPEND | LOCK_EX );
 		if ( false === $result ) {
 			@error_log( '[cepcerto] failed_write_log_file=' . $file . ' line=' . $line );

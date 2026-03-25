@@ -143,16 +143,16 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		 * @return void
 		 */
 		public function calculate_shipping( $package = array() ) {
-			$destinationCep = isset( $package['destination']['postcode'] )
+			$destination_cep = isset( $package['destination']['postcode'] )
 				? preg_replace( '/\D+/', '', (string) $package['destination']['postcode'] )
 				: '';
 
-			if ( 8 !== strlen( $destinationCep ) ) {
+			if ( 8 !== strlen( $destination_cep ) ) {
 				return;
 			}
 
-			$originCep = preg_replace( '/\D+/', '', (string) get_option( 'cepcerto_origin_cep', '' ) );
-			if ( 8 !== strlen( $originCep ) ) {
+			$origin_cep = preg_replace( '/\D+/', '', (string) get_option( 'cepcerto_origin_cep', '' ) );
+			if ( 8 !== strlen( $origin_cep ) ) {
 				return;
 			}
 
@@ -167,20 +167,20 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
-			$cartTotal = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
-			$minOrderValue = (float) get_option( 'cepcerto_min_order_value', 50 );
-			$valorEncomenda = max( $minOrderValue, min( 35000, (float) $cartTotal ) );
+			$cart_total      = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
+			$min_order_value = (float) get_option( 'cepcerto_min_order_value', 50 );
+			$valor_encomenda = max( $min_order_value, min( 35000, (float) $cart_total ) );
 
-			$api = new CepCerto_Api();
+			$api    = new CepCerto_Api();
 			$result = $api->quote_frete(
 				$token,
-				$originCep,
-				$destinationCep,
+				$origin_cep,
+				$destination_cep,
 				$dimensions['weight'],
 				$dimensions['height'],
 				$dimensions['width'],
 				$dimensions['length'],
-				$valorEncomenda
+				$valor_encomenda
 			);
 
 			if ( is_wp_error( $result ) ) {
@@ -190,7 +190,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 
 			$rate = $this->build_rate_from_response( $result );
 			if ( ! $rate ) {
-				$this->log_error( 'Resposta da cotação não contém dados para o serviço.', array( 'service' => $this->service, 'response' => $result ) );
+				$this->log_error(
+					'Resposta da cotação não contém dados para o serviço.',
+					array(
+						'service'  => $this->service,
+						'response' => $result,
+					)
+				);
 				return;
 			}
 
@@ -238,27 +244,27 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return false;
 			}
 
-			$additionalTax = $this->to_float( $this->additional_tax );
-			$percentTax    = $this->to_float( $this->percent_tax );
-			$extraDays     = (int) $this->additional_time;
+			$additional_tax = $this->to_float( $this->additional_tax );
+			$percent_tax    = $this->to_float( $this->percent_tax );
+			$extra_days     = (int) $this->additional_time;
 
-			$cost = $price + $additionalTax;
-			if ( 0 !== $percentTax ) {
-				$cost += ( $price * ( $percentTax / 100 ) );
+			$cost = $price + $additional_tax;
+			if ( 0 !== $percent_tax ) {
+				$cost += ( $price * ( $percent_tax / 100 ) );
 			}
 
 			$label = $this->title;
 			if ( ! empty( $days ) ) {
-				$totalDays = $days + $extraDays;
+				$total_days = $days + $extra_days;
 				/* translators: %d: number of days */
-				$label .= sprintf( _n( ' (%d dia)', ' (%d dias)', $totalDays, 'cepcerto' ), $totalDays );
+				$label .= sprintf( _n( ' (%d dia)', ' (%d dias)', $total_days, 'cepcerto' ), $total_days );
 			}
 
 			return array(
-				'id'       => $this->instance_id,
-				'label'    => $label,
-				'cost'     => max( 0, $cost ),
-				'calc_tax' => 'per_item',
+				'id'        => $this->instance_id,
+				'label'     => $label,
+				'cost'      => max( 0, $cost ),
+				'calc_tax'  => 'per_item',
 				'meta_data' => array(
 					'service' => $service,
 					'days'    => isset( $days ) ? (int) $days : null,
@@ -277,12 +283,12 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		protected function get_package_dimensions( $package ) {
 			$default = $this->get_default_dimensions();
 
-			$weight = 0.0;
-			$width  = 0.0;
-			$height = 0.0;
-			$length = 0.0;
-			$totalQuantity = 0;
-			$defaultWeightKg = $this->convert_weight_to_kg( $default['weight'] );
+			$weight            = 0.0;
+			$width             = 0.0;
+			$height            = 0.0;
+			$length            = 0.0;
+			$total_quantity    = 0;
+			$default_weight_kg = $this->convert_weight_to_kg( $default['weight'] );
 
 			if ( empty( $package['contents'] ) || ! is_array( $package['contents'] ) ) {
 				return false;
@@ -300,14 +306,14 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 					continue;
 				}
 
-				$totalQuantity += max( 0, $quantity );
-				$productWeight = $this->to_float( $product->get_weight() );
-				$productWeightKg = $productWeight > 0 ? $this->convert_weight_to_kg( $productWeight ) : $defaultWeightKg;
-				$weight += $productWeightKg * max( 0, $quantity );
+				$total_quantity   += max( 0, $quantity );
+				$product_weight    = $this->to_float( $product->get_weight() );
+				$product_weight_kg = $product_weight > 0 ? $this->convert_weight_to_kg( $product_weight ) : $default_weight_kg;
+				$weight           += $product_weight_kg * max( 0, $quantity );
 			}
 
-			if ( $weight <= 0 && $totalQuantity > 0 ) {
-				$weight = $defaultWeightKg * $totalQuantity;
+			if ( $weight <= 0 && $total_quantity > 0 ) {
+				$weight = $default_weight_kg * $total_quantity;
 			}
 			$width  = $this->convert_dimension_to_cm( $default['width'] );
 			$height = $this->convert_dimension_to_cm( $default['height'] );
@@ -348,7 +354,7 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		 * @return float Converted value in cm.
 		 */
 		protected function convert_dimension_to_cm( $value ) {
-			$unit = strtolower( (string) get_option( 'woocommerce_dimension_unit', 'cm' ) );
+			$unit  = strtolower( (string) get_option( 'woocommerce_dimension_unit', 'cm' ) );
 			$value = (float) str_replace( ',', '.', (string) $value );
 
 			if ( 'm' === $unit ) {
@@ -369,7 +375,7 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		 * @return float Converted value in kg.
 		 */
 		protected function convert_weight_to_kg( $value ) {
-			$unit = strtolower( (string) get_option( 'woocommerce_weight_unit', 'kg' ) );
+			$unit  = strtolower( (string) get_option( 'woocommerce_weight_unit', 'kg' ) );
 			$value = (float) str_replace( ',', '.', (string) $value );
 
 			if ( 'g' === $unit ) {

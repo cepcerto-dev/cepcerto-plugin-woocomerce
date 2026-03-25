@@ -39,20 +39,20 @@ class CepCerto_Api {
 	 *
 	 * @since 1.0.0
 	 */
-	const URL_CADASTRO          = self::DEFAULT_BASE_URL . 'api-cadastro/';
-	const URL_VALIDAR_TOKEN     = self::DEFAULT_BASE_URL . 'api-validar-token/';
-	const URL_CREDITO           = self::DEFAULT_BASE_URL . 'api-credito/';
-	const URL_SALDO             = self::DEFAULT_BASE_URL . 'api-saldo/';
-	const URL_FINANCEIRO        = self::DEFAULT_BASE_URL . 'api-financeiro/';
-	const URL_COTACAO_POST      = self::DEFAULT_BASE_URL . 'api-cotacao/';
-	const URL_COTACAO_FRETE     = self::DEFAULT_BASE_URL . 'api-cotacao-frete/';
-	const URL_POSTAGEM          = self::DEFAULT_BASE_URL . 'api-postagem/';
-	const URL_ETIQUETA          = self::DEFAULT_BASE_URL . 'api-etiqueta/';
-	const URL_CANCELA           = self::DEFAULT_BASE_URL . 'api-cancela/';
-	const URL_POSTAGEM_FRETE    = self::DEFAULT_BASE_URL . 'api-postagem-frete/';
-	const URL_CANCELA_POSTAGEM  = self::DEFAULT_BASE_URL . 'api-cancela-postagem';
-	const URL_REGISTRO          = self::DEFAULT_BASE_URL . 'api-cadastro-wordpress/';
-	const URL_RASTREIO          = self::DEFAULT_BASE_URL . 'api-rastreio/';
+	const URL_CADASTRO           = self::DEFAULT_BASE_URL . 'api-cadastro/';
+	const URL_VALIDAR_TOKEN      = self::DEFAULT_BASE_URL . 'api-validar-token/';
+	const URL_CREDITO            = self::DEFAULT_BASE_URL . 'api-credito/';
+	const URL_SALDO              = self::DEFAULT_BASE_URL . 'api-saldo/';
+	const URL_FINANCEIRO         = self::DEFAULT_BASE_URL . 'api-financeiro/';
+	const URL_COTACAO_POST       = self::DEFAULT_BASE_URL . 'api-cotacao/';
+	const URL_COTACAO_FRETE      = self::DEFAULT_BASE_URL . 'api-cotacao-frete/';
+	const URL_POSTAGEM           = self::DEFAULT_BASE_URL . 'api-postagem/';
+	const URL_ETIQUETA           = self::DEFAULT_BASE_URL . 'api-etiqueta/';
+	const URL_CANCELA            = self::DEFAULT_BASE_URL . 'api-cancela/';
+	const URL_POSTAGEM_FRETE     = self::DEFAULT_BASE_URL . 'api-postagem-frete/';
+	const URL_CANCELA_POSTAGEM   = self::DEFAULT_BASE_URL . 'api-cancela-postagem';
+	const URL_REGISTRO           = self::DEFAULT_BASE_URL . 'api-cadastro-wordpress/';
+	const URL_RASTREIO           = self::DEFAULT_BASE_URL . 'api-rastreio/';
 	const URL_RASTREIO_ENCOMENDA = self::DEFAULT_BASE_URL . 'encomenda-rastreio/';
 
 	/**
@@ -120,8 +120,8 @@ class CepCerto_Api {
 			return new WP_Error( 'cepcerto_invalid_cep', __( 'CEP inválido.', 'cepcerto' ) );
 		}
 
-		$url = trailingslashit( self::URL_VIACEP ) . rawurlencode( $cep ) . '/json/';
-		$start = microtime( true );
+		$url      = trailingslashit( self::URL_VIACEP ) . rawurlencode( $cep ) . '/json/';
+		$start    = microtime( true );
 		$response = wp_remote_get(
 			$url,
 			array(
@@ -141,8 +141,8 @@ class CepCerto_Api {
 		}
 
 		$status = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
+		$body   = wp_remote_retrieve_body( $response );
+		$data   = json_decode( $body, true );
 		if ( class_exists( 'CepCerto_Logger' ) ) {
 			CepCerto_Logger::log_request( 'GET', $url, $status, (int) $duration, null, $body, null );
 		}
@@ -173,15 +173,14 @@ class CepCerto_Api {
 		}
 
 		$payload = array(
-			'client_id' => sanitize_text_field( get_option( 'blogname', 'loja' ) ) . '_' . wp_hash( home_url() ),
-			'timestamp' => time(),
-			'nonce'     => wp_generate_uuid4(),
-			'email_cliente'     => sanitize_email( $email ),
-			'nome_cliente' => sanitize_text_field( $nome ),
-			'site_url'  => home_url(),
-			'ip'        => $ip,
+			'client_id'     => sanitize_text_field( get_option( 'blogname', 'loja' ) ) . '_' . wp_hash( home_url() ),
+			'timestamp'     => time(),
+			'nonce'         => wp_generate_uuid4(),
+			'email_cliente' => sanitize_email( $email ),
+			'nome_cliente'  => sanitize_text_field( $nome ),
+			'site_url'      => home_url(),
+			'ip'            => $ip,
 		);
-
 
 		$result = $this->post_json( self::URL_REGISTRO, $payload );
 
@@ -189,7 +188,7 @@ class CepCerto_Api {
 			return $result;
 		}
 
-		if ( isset( $result['ok'] ) && $result['ok'] === true && ! empty( $result['token'] ) ) {
+		if ( isset( $result['ok'] ) && true === $result['ok'] && ! empty( $result['token'] ) ) {
 			update_option( 'cepcerto_token_cliente_postagem', sanitize_text_field( $result['token'] ) );
 		}
 
@@ -338,7 +337,7 @@ class CepCerto_Api {
 	 * @return array|WP_Error Response data or error.
 	 */
 	public function post_json( $url, $payload ) {
-		$start = microtime( true );
+		$start    = microtime( true );
 		$response = wp_remote_post(
 			$url,
 			array(
@@ -360,8 +359,8 @@ class CepCerto_Api {
 		}
 
 		$status = wp_remote_retrieve_response_code( $response );
-		$body = wp_remote_retrieve_body( $response );
-		$data = json_decode( $body, true );
+		$body   = wp_remote_retrieve_body( $response );
+		$data   = json_decode( $body, true );
 		if ( class_exists( 'CepCerto_Logger' ) ) {
 			CepCerto_Logger::log_request( 'POST', $url, $status, (int) $duration, $payload, $body, null );
 		}

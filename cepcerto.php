@@ -13,8 +13,9 @@
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.0
+ * Tested up to: 6.7
  * WC requires at least: 7.0
- * WC tested up to: 9.2
+ * WC tested up to: 9.4
  * WC requires HPOS: yes
  * WC compatible blocks: yes
  *
@@ -106,7 +107,7 @@ register_activation_hook( CEPCERTO_PLUGIN_FILE, 'cepcerto_activate_plugin' );
 final class CepCerto_Plugin {
 
 	/**
- * Single instance of the class.
+	 * Single instance of the class.
 	 *
 	 * @since 1.0.0
 	 * @var CepCerto_Plugin|null
@@ -249,10 +250,11 @@ final class CepCerto_Plugin {
 	 *
 	 * @since 1.0.0
 	 * @param array $rates   Shipping rates.
-	 * @param array $package Package information.
+	 * @param array $package Package information (unused, required by filter signature).
 	 * @return array Ordered shipping rates.
 	 */
-	public function order_rates_by_price( $rates, $package ) {
+	public function order_rates_by_price( $rates, $package ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+		// Package parameter is required by WooCommerce filter but not used in this implementation.
 		if ( empty( $rates ) || ! is_array( $rates ) ) {
 			return $rates;
 		}
@@ -295,12 +297,12 @@ function cepcerto_declare_wc_compatibility() {
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 	}
-	
+
 	// Declare compatibility with WooCommerce Cart & Checkout blocks
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
 	}
-	
+
 	// Declare compatibility with Product Blocks
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'product_block_editor', __FILE__, true );

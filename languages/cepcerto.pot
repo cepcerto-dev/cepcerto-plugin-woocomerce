@@ -1,0 +1,100 @@
+# Copyright (C) 2025 CepCerto
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: CepCerto 1.0.0\n"
+"Report-Msgid-Bugs-To: https://cepcerto.com/\n"
+"POT-Creation-Date: 2025-01-01 00:00:00+00:00\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2025-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+
+#: cepcerto.php:3
+msgid "Plugin para cotação de fretes utilizando a API do CepCerto."
+msgstr ""
+
+#: cepcerto.php:10
+msgid "CepCerto"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:156
+msgid "CepCerto"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:157
+msgid "Configurações"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:293
+msgid "Dados remetente"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:294
+msgid "Configurações"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:295
+msgid "Saldo"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:296
+msgid "Pedidos"
+msgstr ""
+
+#: includes/class-cepcerto-admin.php:297
+msgid "Logs"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:45
+msgid "Habilitar/Desabilitar"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:47
+msgid "Habilitar este método de envio"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:51
+msgid "Título"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:53
+msgid "Título exibido para o usuário durante o checkout."
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:58
+msgid "Taxa adicional (%)"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:60
+msgid "Taxa adicional em percentual."
+msgstr ""
+
+
+
+#: includes/class-wc-cepcerto-shipping.php:66
+msgid "Dias extras"
+msgstr ""
+
+#: includes/class-wc-cepcerto-shipping.php:68
+msgid "Dias extras a serem adicionados ao prazo."
+msgstr ""
+
+#: includes/class-cepcerto-frontend.php:85
+msgid "Calcular frete"
+msgstr ""
+
+#: includes/class-cepcerto-frontend.php:86
+msgid "CEP inválido"
+msgstr ""
+
+#: includes/class-cepcerto-frontend.php:87
+msgid "Erro ao calcular frete"
+msgstr ""
+
+#: includes/class-cepcerto-frontend.php:88
+msgid "Não sei meu CEP"
+msgstr ""

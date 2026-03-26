@@ -5,7 +5,7 @@
  * Description: Plugin para cotação de fretes utilizando a API do CepCerto.
  * Version: 1.0.0
  * Author: CepCerto
- * Author URI: https://cepcerto.com/
+ * Author URI: https://cepcerto.com
  * License: GPLv3
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain: cepcerto

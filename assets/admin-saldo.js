@@ -229,9 +229,15 @@
 	}
 
 	function buildInfoTable(tableId, rows) {
-		var tbody = document.querySelector('#' + tableId + ' tbody');
+		var table = document.getElementById(tableId);
+		if (!table) return;
+		var tbody = table.querySelector('tbody');
 		if (!tbody) return;
-		tbody.innerHTML = '';
+		
+		while (tbody.firstChild) {
+			tbody.removeChild(tbody.firstChild);
+		}
+		
 		rows.forEach(function(row) {
 			var tr = document.createElement('tr');
 			var th = document.createElement('th');
@@ -271,33 +277,43 @@
 				}
 
 				var data = resp.data || {};
-				var rows = [];
-				if (data.nome_cliente) rows.push({
-					label: 'Cliente',
-					value: '<strong>' + escHtml(data.nome_cliente) + '</strong>'
-				});
-				if (data.email) rows.push({
-					label: 'Email',
-					value: escHtml(data.email)
-				});
-				if (data.telefone) rows.push({
-					label: 'Telefone',
-					value: escHtml(data.telefone)
-				});
-				if (data.valor) rows.push({
-					label: 'Valor',
-					value: '<strong style="font-size:1.3em;color:#2e7d32;">R$ ' + escHtml(data.valor) + '</strong>'
-				});
-				if (data.data_requisicao) rows.push({
-					label: 'Data',
-					value: escHtml(data.data_requisicao)
-				});
+			
+			var paymentConfirmed = document.getElementById('cepcerto-credito-payment-confirmed');
+			if (paymentConfirmed && paymentConfirmed.parentNode) {
+				paymentConfirmed.parentNode.removeChild(paymentConfirmed);
+			}
+			
+			var rows = [];
+			if (data.nome_cliente) rows.push({
+				label: 'Cliente',
+				value: '<strong>' + escHtml(data.nome_cliente) + '</strong>'
+			});
+			if (data.email) rows.push({
+				label: 'Email',
+				value: escHtml(data.email)
+			});
+			if (data.telefone) rows.push({
+				label: 'Telefone',
+				value: escHtml(data.telefone)
+			});
+			if (data.valor) rows.push({
+				label: 'Valor',
+				value: '<strong style="font-size:1.3em;color:#2e7d32;">R$ ' + escHtml(data.valor) + '</strong>'
+			});
+			if (data.data_requisicao) rows.push({
+				label: 'Data',
+				value: escHtml(data.data_requisicao)
+			});
 
-				buildInfoTable('cepcerto-credito-tabela', rows);
+			buildInfoTable('cepcerto-credito-tabela', rows);
 
-				var qrcodeContainer = document.getElementById('cepcerto-qrcode-container');
-				var pixSection = document.getElementById('cepcerto-pix-section');
-				if (qrcodeContainer) qrcodeContainer.innerHTML = '';
+			var qrcodeContainer = document.getElementById('cepcerto-qrcode-container');
+			var pixSection = document.getElementById('cepcerto-pix-section');
+			if (qrcodeContainer) {
+				while (qrcodeContainer.firstChild) {
+					qrcodeContainer.removeChild(qrcodeContainer.firstChild);
+				}
+			}
 
 				if (data.qrcode_img) {
 					var img = document.createElement('img');
@@ -321,7 +337,10 @@
 					pixSection.style.display = (data.qrcode_img || data.copia_cola) ? 'block' : 'none';
 				}
 
-				document.getElementById('cepcerto-credito-resultado').style.display = 'block';
+				var resultado = document.getElementById('cepcerto-credito-resultado');
+				if (resultado) {
+					resultado.style.display = 'block';
+				}
 				showNotice('notice-success', 'Cobrança PIX gerada com sucesso!');
 				startSaldoPolling();
 			}).catch(function(err) {

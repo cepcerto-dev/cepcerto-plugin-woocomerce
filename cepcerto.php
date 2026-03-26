@@ -140,11 +140,13 @@ final class CepCerto_Plugin {
 	/**
 	 * Load plugin textdomain for translations.
 	 *
+	 * WordPress automatically loads translations for plugins hosted on WordPress.org.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function load_textdomain() {
-		load_plugin_textdomain( 'cepcerto', false, dirname( CEPCERTO_PLUGIN_BASENAME ) . '/languages' );
+		// Translations are automatically loaded by WordPress for plugins on WordPress.org.
 	}
 
 	/**

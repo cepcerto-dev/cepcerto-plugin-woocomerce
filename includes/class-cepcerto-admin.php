@@ -319,13 +319,55 @@ class CepCerto_Admin {
 				'sanitize_callback' => array( $this, 'sanitize_token_cliente_postagem' ),
 			)
 		);
-		register_setting( 'cepcerto_settings', 'cepcerto_debug' );
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_debug',
+			array(
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_sanitize_boolean',
+			)
+		);
 
-		register_setting( 'cepcerto_settings', 'cepcerto_default_width' );
-		register_setting( 'cepcerto_settings', 'cepcerto_default_height' );
-		register_setting( 'cepcerto_settings', 'cepcerto_default_length' );
-		register_setting( 'cepcerto_settings', 'cepcerto_default_weight' );
-		register_setting( 'cepcerto_settings', 'cepcerto_min_order_value' );
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_default_width',
+			array(
+				'type'              => 'number',
+				'sanitize_callback' => 'absint',
+			)
+		);
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_default_height',
+			array(
+				'type'              => 'number',
+				'sanitize_callback' => 'absint',
+			)
+		);
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_default_length',
+			array(
+				'type'              => 'number',
+				'sanitize_callback' => 'absint',
+			)
+		);
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_default_weight',
+			array(
+				'type'              => 'number',
+				'sanitize_callback' => 'absint',
+			)
+		);
+		register_setting(
+			'cepcerto_settings',
+			'cepcerto_min_order_value',
+			array(
+				'type'              => 'number',
+				'sanitize_callback' => 'floatval',
+			)
+		);
 		register_setting(
 			'cepcerto_settings',
 			'cepcerto_display_locations',
@@ -336,8 +378,22 @@ class CepCerto_Admin {
 			)
 		);
 
-		register_setting( 'cepcerto_settings_sender', 'cepcerto_origin_cep' );
-		register_setting( 'cepcerto_settings_sender', 'cepcerto_nome_remetente' );
+		register_setting(
+			'cepcerto_settings_sender',
+			'cepcerto_origin_cep',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
+		register_setting(
+			'cepcerto_settings_sender',
+			'cepcerto_nome_remetente',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
 		register_setting(
 			'cepcerto_settings_sender',
 			'cepcerto_cpf_cnpj_remetente',
@@ -359,7 +415,14 @@ class CepCerto_Admin {
 				'sanitize_callback' => array( $this, 'sanitize_email_remetente' ),
 			)
 		);
-		register_setting( 'cepcerto_settings_sender', 'cepcerto_logradouro_remetente' );
+		register_setting(
+		'cepcerto_settings_sender',
+		'cepcerto_logradouro_remetente',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
 		register_setting(
 			'cepcerto_settings_sender',
 			'cepcerto_bairro_remetente',
@@ -374,7 +437,14 @@ class CepCerto_Admin {
 				'sanitize_callback' => array( $this, 'sanitize_numero_endereco_remetente' ),
 			)
 		);
-		register_setting( 'cepcerto_settings_sender', 'cepcerto_complemento_remetente' );
+		register_setting(
+		'cepcerto_settings_sender',
+		'cepcerto_complemento_remetente',
+		array(
+			'type'              => 'string',
+			'sanitize_callback' => 'sanitize_text_field',
+		)
+	);
 	}
 
 	private function digits_only( $value ) {
@@ -1624,7 +1694,15 @@ class CepCerto_Admin {
 		header( 'Content-Type: text/plain; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=' . basename( $file ) );
 		header( 'Content-Length: ' . filesize( $file ) );
-		readfile( $file );
+
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $wp_filesystem->get_contents( $file );
 		exit;
 	}
 

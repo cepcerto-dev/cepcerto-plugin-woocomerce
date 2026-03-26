@@ -52,6 +52,7 @@ function cepcerto_delete_order_meta() {
 	global $wpdb;
 
 	// Delete from postmeta (legacy orders).
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
@@ -62,6 +63,7 @@ function cepcerto_delete_order_meta() {
 	// Delete from HPOS meta table if it exists.
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 		$hpos_table = $wpdb->prefix . 'wc_orders_meta';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Checking table existence during uninstall.
 		$table_exists = $wpdb->get_var(
 			$wpdb->prepare(
 				'SHOW TABLES LIKE %s',
@@ -70,9 +72,10 @@ function cepcerto_delete_order_meta() {
 		);
 
 		if ( $table_exists ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
 			$wpdb->query(
 				$wpdb->prepare(
-					"DELETE FROM {$hpos_table} WHERE meta_key LIKE %s",
+					"DELETE FROM `{$wpdb->prefix}wc_orders_meta` WHERE meta_key LIKE %s",
 					$wpdb->esc_like( '_cepcerto_' ) . '%'
 				)
 			);
@@ -94,11 +97,17 @@ function cepcerto_delete_log_files() {
 		if ( is_array( $files ) ) {
 			foreach ( $files as $file ) {
 				if ( is_file( $file ) ) {
-					@unlink( $file );
+					wp_delete_file( $file );
 				}
 			}
 		}
-		@rmdir( $log_dir );
+
+		global $wp_filesystem;
+		if ( empty( $wp_filesystem ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			WP_Filesystem();
+		}
+		$wp_filesystem->rmdir( $log_dir );
 	}
 }
 
@@ -110,6 +119,7 @@ function cepcerto_delete_log_files() {
 function cepcerto_delete_transients() {
 	global $wpdb;
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -117,6 +127,7 @@ function cepcerto_delete_transients() {
 		)
 	);
 
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",

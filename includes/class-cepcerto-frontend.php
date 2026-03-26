@@ -153,7 +153,7 @@ class CepCerto_Frontend {
 			);
 		}
 
-		$nonce = isset( $_POST['nonce'] ) ? (string) wp_unslash( $_POST['nonce'] ) : '';
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_calculator' ) ) {
 			if ( class_exists( 'CepCerto_Logger' ) ) {
 				CepCerto_Logger::log( 'warning', 'AJAX nonce inválido', array( 'action' => self::AJAX_ACTION ) );
@@ -167,7 +167,7 @@ class CepCerto_Frontend {
 		}
 
 		$product_id  = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
-		$cep_destino = isset( $_POST['postcode'] ) ? preg_replace( '/\D+/', '', (string) wp_unslash( $_POST['postcode'] ) ) : '';
+		$cep_destino = isset( $_POST['postcode'] ) ? preg_replace( '/\D+/', '', sanitize_text_field( wp_unslash( $_POST['postcode'] ) ) ) : '';
 
 		if ( empty( $product_id ) ) {
 			if ( class_exists( 'CepCerto_Logger' ) ) {

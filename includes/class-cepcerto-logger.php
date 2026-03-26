@@ -153,6 +153,7 @@ class CepCerto_Logger {
 		$file   = self::get_log_file_path();
 		$result = @file_put_contents( $file, $line, FILE_APPEND | LOCK_EX );
 		if ( false === $result ) {
+			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback when file writing fails.
 			@error_log( '[cepcerto] failed_write_log_file=' . $file . ' line=' . $line );
 		}
 	}

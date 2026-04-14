@@ -324,7 +324,7 @@ class CepCerto_Admin {
 			'cepcerto_debug',
 			array(
 				'type'              => 'boolean',
-				'sanitize_callback' => 'rest_sanitize_boolean',
+				'sanitize_callback' => array( $this, 'sanitize_checkbox' ),
 			)
 		);
 
@@ -333,7 +333,7 @@ class CepCerto_Admin {
 			'cepcerto_default_width',
 			array(
 				'type'              => 'number',
-				'sanitize_callback' => 'absint',
+				'sanitize_callback' => 'floatval',
 			)
 		);
 		register_setting(
@@ -341,7 +341,7 @@ class CepCerto_Admin {
 			'cepcerto_default_height',
 			array(
 				'type'              => 'number',
-				'sanitize_callback' => 'absint',
+				'sanitize_callback' => 'floatval',
 			)
 		);
 		register_setting(
@@ -349,7 +349,7 @@ class CepCerto_Admin {
 			'cepcerto_default_length',
 			array(
 				'type'              => 'number',
-				'sanitize_callback' => 'absint',
+				'sanitize_callback' => 'floatval',
 			)
 		);
 		register_setting(
@@ -503,6 +503,10 @@ class CepCerto_Admin {
 
 	public function sanitize_token_cliente_postagem( $value ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
 		return (string) get_option( 'cepcerto_token_cliente_postagem', '' );
+	}
+
+	public function sanitize_checkbox( $value ) {
+		return ( isset( $value ) && 'yes' === $value ) ? 'yes' : 'no';
 	}
 
 	public function sanitize_display_locations( $value ) {
@@ -1234,28 +1238,6 @@ class CepCerto_Admin {
 				</div>
 			<?php endif; ?>
 		<?php endif; ?>
-		<script>
-			(function() {
-				try {
-					var needles = [
-						'Atenção usuário do Melhor Envio',
-						'Atenção usuário do Plugin Melhor Envio',
-						'Plugin Melhor Envio',
-						'Melhor Envio'
-					];
-					var nodes = document.querySelectorAll('.notice, .updated, .error');
-					Array.prototype.forEach.call(nodes, function(n) {
-						var text = (n && n.textContent) ? n.textContent : '';
-						var matched = needles.some(function(s) {
-							return text.indexOf(s) !== -1;
-						});
-						if (matched) {
-							n.parentNode && n.parentNode.removeChild(n);
-						}
-					});
-				} catch (e) {}
-			})();
-		</script>
 		<?php
 	}
 

@@ -36,6 +36,10 @@ function cepcerto_delete_options() {
 		'cepcerto_default_weight',
 		'cepcerto_min_order_value',
 		'cepcerto_display_locations',
+		'cepcerto_install_status',
+		'cepcerto_consent_given',
+		'cepcerto_consent_date',
+		'cepcerto_consent_email',
 	);
 
 	foreach ( $options as $option ) {

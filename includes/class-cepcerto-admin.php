@@ -310,13 +310,14 @@ class CepCerto_Admin {
 	 *
 	 * @since 1.0.0
 	 * @return void
-	 */
+	 */ 
 	public function register_settings() {
 		register_setting(
 			'cepcerto_settings',
 			'cepcerto_token_cliente_postagem',
 			array(
-				'sanitize_callback' => array( $this, 'sanitize_token_cliente_postagem' ),
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 		register_setting(
@@ -499,10 +500,6 @@ class CepCerto_Admin {
 			return (string) get_option( 'cepcerto_numero_endereco_remetente', '' );
 		}
 		return $value;
-	}
-
-	public function sanitize_token_cliente_postagem( $value ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
-		return (string) get_option( 'cepcerto_token_cliente_postagem', '' );
 	}
 
 	public function sanitize_checkbox( $value ) {

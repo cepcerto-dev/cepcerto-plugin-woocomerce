@@ -168,10 +168,11 @@ This plugin relies on external third-party services to provide shipping calculat
 
 **Note:** This service requires an API token that is automatically generated when you activate the plugin. No personal data is collected without your explicit action of using the plugin features.
 
-= ViaCEP =
 
-**Service:** ViaCEP - Free Brazilian Postal Code API
-**Website:** https://viacep.com.br/
+= CepCerto CEP Lookup =
+
+**Service:** CepCerto CEP Lookup API
+**Website:** https://cepcerto.com/
 **Purpose:** Used to lookup and auto-complete address information based on Brazilian postal codes (CEP) in the plugin settings.
 
 **When data is sent:**
@@ -179,15 +180,17 @@ This plugin relies on external third-party services to provide shipping calculat
 * This is an optional feature triggered by manual admin action
 
 **Data transmitted:**
-* Only the postal code (CEP) entered by the admin
+* Postal code (CEP) entered by the admin
+* Authentication token for API access
 
-**Privacy Policy:** This is a public, free API service. No personal data is stored. See https://viacep.com.br/ for more information.
+**Privacy Policy:** https://cepcerto.com/politica-de-privacidade/
 
 = Correios =
 
 **Service:** Brazilian Postal Service CEP Lookup
 **Website:** https://buscacepinter.correios.com.br/
 **Purpose:** Provides a reference link for customers to find their postal codes.
+**Privacy Policy:** https://www.correios.com.br/falecomoscorreios/politica-de-privacidade-e-cookies
 
 **Data transmission:** This is only a hyperlink displayed to users. No data is automatically sent to Correios. Users may click the link and use Correios' website directly if they wish.
 

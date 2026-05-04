@@ -27,12 +27,12 @@ class CepCerto_Api {
 	const DEFAULT_BASE_URL = 'https://cepcerto.com/';
 
 	/**
-	 * ViaCEP API URL.
+	 * CepCerto CEP lookup URL.
 	 *
 	 * @since 1.0.0
 	 * @var string
 	 */
-	const URL_VIACEP = 'https://viacep.com.br/ws/';
+	const URL_BUSCA_CEP = self::DEFAULT_BASE_URL . 'ws/json/';
 
 	/**
 	 * CepCerto API endpoints.
@@ -108,7 +108,7 @@ class CepCerto_Api {
 	}
 
 	/**
-	 * Lookup postal code information via ViaCEP.
+	 * Lookup postal code information via CepCerto API.
 	 *
 	 * @since 1.0.0
 	 * @param string $cep Postal code to lookup.
@@ -120,7 +120,8 @@ class CepCerto_Api {
 			return new WP_Error( 'cepcerto_invalid_cep', __( 'CEP inválido.', 'cepcerto' ) );
 		}
 
-		$url      = trailingslashit( self::URL_VIACEP ) . rawurlencode( $cep ) . '/json/';
+		$token    = 'aadsp5522334455@@';
+		$url      = trailingslashit( self::URL_BUSCA_CEP ) . rawurlencode( $cep ) . '/' . ( $token );
 		$start    = microtime( true );
 		$response = wp_remote_get(
 			$url,

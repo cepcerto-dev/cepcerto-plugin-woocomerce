@@ -112,7 +112,7 @@ class CepCerto_Api {
 	 *
 	 * @since 1.0.0
 	 * @param string $cep Postal code to lookup.
-	 * @return array|WP_Error Address data or error.
+	 * @return array|WP_Error Address data or error
 	 */
 	public function consultar_cep( $cep ) {
 		$cep = preg_replace( '/\D+/', '', (string) $cep );

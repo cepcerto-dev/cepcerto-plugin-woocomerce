@@ -94,10 +94,10 @@ Verifique:
 Estrutura (resumo):
 
 - `cepcerto.php`: bootstrap do plugin
-- `includes/class-cepcerto-api.php`: integração com API CepCerto (GET/POST)
-- `includes/class-cepcerto-admin.php`: menu e configurações no wp-admin
-- `includes/class-cepcerto-frontend.php`: calculadora no produto e endpoint AJAX
-- `includes/class-cepcerto-logger.php`: log próprio do plugin
+- `includes/class-cepcer-api.php`: integração com API CepCerto (GET/POST)
+- `includes/class-cepcer-admin.php`: menu e configurações no wp-admin
+- `includes/class-cepcer-frontend.php`: calculadora no produto e endpoint AJAX
+- `includes/class-cepcer-logger.php`: log próprio do plugin
 - `assets/product-calculator.js`: JS da calculadora
 
 ## Licença

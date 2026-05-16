@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( class_exists( 'WC_CepCerto_Shipping' ) ) {
+if ( class_exists( 'CEPCER_Shipping' ) ) {
 	/**
 	 * SEDEX Shipping Method Class.
 	 *
 	 * @since 1.0.0
 	 */
-	class WC_CepCerto_Shipping_Sedex extends WC_CepCerto_Shipping {
+	class CEPCER_Shipping_Sedex extends CEPCER_Shipping {
 		/**
 		 * Constructor.
 		 *
@@ -26,7 +26,7 @@ if ( class_exists( 'WC_CepCerto_Shipping' ) ) {
 		 * @param int $instance_id Shipping instance ID.
 		 */
 		public function __construct( $instance_id = 0 ) {
-			$this->id                 = 'cepcerto_sedex';
+			$this->id                 = 'cepcer_sedex';
 			$this->method_title       = __( 'CepCerto - SEDEX', 'cepcerto' );
 			$this->method_description = __( 'Cotação de frete SEDEX via CepCerto.', 'cepcerto' );
 			$this->service            = 'SEDEX';

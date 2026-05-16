@@ -28,7 +28,7 @@ csso assets/product-calculator.css -o assets/product-calculator.min.css
 ```
 
 ### Update Enqueue Calls
-After minification, update `class-cepcerto-admin.php` and `class-cepcerto-frontend.php` to use `.min.js` and `.min.css` files in production.
+After minification, update `class-cepcer-admin.php` and `class-cepcer-frontend.php` to use `.min.js` and `.min.css` files in production.
 
 ## Translation Files
 

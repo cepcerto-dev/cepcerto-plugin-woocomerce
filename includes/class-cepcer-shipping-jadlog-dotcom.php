@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( class_exists( 'WC_CepCerto_Shipping' ) ) {
+if ( class_exists( 'CEPCER_Shipping' ) ) {
 	/**
 	 * Jadlog .Com Shipping Method Class.
 	 *
 	 * @since 1.0.0
 	 */
-	class WC_CepCerto_Shipping_Jadlog_Dotcom extends WC_CepCerto_Shipping {
+	class CEPCER_Shipping_Jadlog_Dotcom extends CEPCER_Shipping {
 		/**
 		 * Constructor.
 		 *
@@ -26,7 +26,7 @@ if ( class_exists( 'WC_CepCerto_Shipping' ) ) {
 		 * @param int $instance_id Shipping instance ID.
 		 */
 		public function __construct( $instance_id = 0 ) {
-			$this->id                 = 'cepcerto_jadlog_dotcom';
+			$this->id                 = 'cepcer_jadlog_dotcom';
 			$this->method_title       = __( 'CepCerto - Jadlog .Com', 'cepcerto' );
 			$this->method_description = __( 'Cotação de frete Jadlog .Com via CepCerto.', 'cepcerto' );
 			$this->service            = 'JADLOG_DOTCOM';

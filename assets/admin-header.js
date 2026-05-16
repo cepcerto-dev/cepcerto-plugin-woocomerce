@@ -77,7 +77,7 @@
 			btn.textContent = '...';
 		}
 		setValue('Carregando...');
-		postAjax('cepcerto_consultar_saldo', {
+		postAjax('cepcer_consultar_saldo', {
 			_wpnonce: nonceSaldo
 		}).then(function(resp) {
 			if (btn) {

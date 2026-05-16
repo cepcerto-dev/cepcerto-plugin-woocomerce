@@ -169,7 +169,7 @@
 			resultEl.innerHTML = '<div class="cepcerto-result__loading"><span class="cepcerto-result__spinner"></span> Calculando...</div>';
 
 			var form = new FormData();
-			form.append( 'action', (window.CepCertoCalculator && window.CepCertoCalculator.action) || 'cepcerto_calculate_product_shipping' );
+			form.append( 'action', (window.CepCertoCalculator && window.CepCertoCalculator.action) || 'cepcer_calculate_product_shipping' );
 			form.append( 'nonce', (window.CepCertoCalculator && window.CepCertoCalculator.nonce) || '' );
 			form.append( 'product_id', productId || '' );
 			form.append( 'postcode', cep );

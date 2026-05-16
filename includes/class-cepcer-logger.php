@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class CepCerto_Logger {
+class CEPCER_Logger {
 
 	/**
 	 * Maximum field length for logging.
@@ -103,10 +103,10 @@ class CepCerto_Logger {
 	 */
 	public static function get_log_file_path() {
 		$upload = wp_upload_dir();
-		$dir    = trailingslashit( $upload['basedir'] ) . 'cepcerto-logs';
+		$dir    = trailingslashit( $upload['basedir'] ) . 'cepcer-logs';
 		wp_mkdir_p( $dir );
 
-		$filename = 'cepcerto-' . gmdate( 'Y-m-d' ) . '.log';
+		$filename = 'cepcer-' . gmdate( 'Y-m-d' ) . '.log';
 		return trailingslashit( $dir ) . $filename;
 	}
 
@@ -118,7 +118,7 @@ class CepCerto_Logger {
 	 */
 	public static function get_log_dir() {
 		$upload = wp_upload_dir();
-		return trailingslashit( $upload['basedir'] ) . 'cepcerto-logs';
+		return trailingslashit( $upload['basedir'] ) . 'cepcer-logs';
 	}
 
 	/**
@@ -133,7 +133,7 @@ class CepCerto_Logger {
 			return false;
 		}
 
-		$files = glob( trailingslashit( $dir ) . 'cepcerto-*.log' );
+		$files = glob( trailingslashit( $dir ) . 'cepcer-*.log' );
 		if ( empty( $files ) ) {
 			return false;
 		}
@@ -154,7 +154,7 @@ class CepCerto_Logger {
 		$result = @file_put_contents( $file, $line, FILE_APPEND | LOCK_EX );
 		if ( false === $result ) {
 			// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Fallback when file writing fails.
-			@error_log( '[cepcerto] failed_write_log_file=' . $file . ' line=' . $line );
+			@error_log( '[cepcer] failed_write_log_file=' . $file . ' line=' . $line );
 		}
 	}
 

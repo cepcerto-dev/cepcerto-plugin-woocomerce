@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class CepCerto_Frontend {
+class CEPCER_Frontend {
 
 	/**
 	 * AJAX action for shipping calculator.
@@ -25,7 +25,7 @@ class CepCerto_Frontend {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	const AJAX_ACTION = 'cepcerto_calculate_product_shipping';
+	const AJAX_ACTION = 'cepcer_calculate_product_shipping';
 
 	/**
 	 * Initialize frontend features.
@@ -55,29 +55,29 @@ class CepCerto_Frontend {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 		wp_register_style(
-			'cepcerto-product',
-			CEPCERTO_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.css',
+			'cepcer-product',
+			CEPCER_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.css',
 			array(),
-			CEPCERTO_VERSION
+			CEPCER_VERSION
 		);
-		wp_enqueue_style( 'cepcerto-product' );
+		wp_enqueue_style( 'cepcer-product' );
 
 		wp_register_script(
-			'cepcerto-product',
-			CEPCERTO_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.js',
+			'cepcer-product',
+			CEPCER_PLUGIN_URL . 'assets/product-calculator' . $suffix . '.js',
 			array(),
-			CEPCERTO_VERSION,
+			CEPCER_VERSION,
 			true
 		);
-		wp_enqueue_script( 'cepcerto-product' );
+		wp_enqueue_script( 'cepcer-product' );
 
 		wp_localize_script(
-			'cepcerto-product',
+			'cepcer-product',
 			'CepCertoCalculator',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'action'  => self::AJAX_ACTION,
-				'nonce'   => wp_create_nonce( 'cepcerto_calculator' ),
+				'nonce'   => wp_create_nonce( 'cepcer_calculator' ),
 			)
 		);
 	}
@@ -124,7 +124,7 @@ class CepCerto_Frontend {
 				><?php esc_html_e( 'Calcular', 'cepcerto' ); ?></button>
 			</div>
 			<span class="cepcerto-calculator__link">
-				<a href="<?php echo esc_url( CepCerto_Api::URL_BUSCA_CEP_CORREIOS ); ?>" target="_blank" rel="noopener noreferrer">
+				<a href="<?php echo esc_url( CEPCER_Api::URL_BUSCA_CEP_CORREIOS ); ?>" target="_blank" rel="noopener noreferrer">
 					<?php esc_html_e( 'Não sei meu CEP', 'cepcerto' ); ?>
 				</a>
 			</span>
@@ -140,8 +140,8 @@ class CepCerto_Frontend {
 	 * @return void
 	 */
 	public function ajax_calculate() {
-		if ( class_exists( 'CepCerto_Logger' ) ) {
-			CepCerto_Logger::log(
+		if ( class_exists( 'CEPCER_Logger' ) ) {
+			CEPCER_Logger::log(
 				'info',
 				'AJAX request recebido',
 				array(
@@ -154,9 +154,9 @@ class CepCerto_Frontend {
 		}
 
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_calculator' ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log( 'warning', 'AJAX nonce inválido', array( 'action' => self::AJAX_ACTION ) );
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_calculator' ) ) {
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log( 'warning', 'AJAX nonce inválido', array( 'action' => self::AJAX_ACTION ) );
 			}
 			wp_send_json_error(
 				array(
@@ -170,15 +170,15 @@ class CepCerto_Frontend {
 		$cep_destino = isset( $_POST['postcode'] ) ? preg_replace( '/\D+/', '', sanitize_text_field( wp_unslash( $_POST['postcode'] ) ) ) : '';
 
 		if ( empty( $product_id ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log( 'warning', 'AJAX produto inválido', array( 'product_id' => $product_id ) );
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log( 'warning', 'AJAX produto inválido', array( 'product_id' => $product_id ) );
 			}
 			wp_send_json_error( array( 'message' => __( 'Produto inválido.', 'cepcerto' ) ), 400 );
 		}
 
 		if ( 8 !== strlen( $cep_destino ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log(
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log(
 					'warning',
 					'AJAX CEP inválido',
 					array(
@@ -190,10 +190,10 @@ class CepCerto_Frontend {
 			wp_send_json_error( array( 'message' => __( 'CEP inválido.', 'cepcerto' ) ), 400 );
 		}
 
-		$origin_cep = preg_replace( '/\D+/', '', (string) get_option( 'cepcerto_origin_cep', '' ) );
+		$origin_cep = preg_replace( '/\D+/', '', (string) cepcer_get_option( 'cepcer_origin_cep', '' ) );
 		if ( 8 !== strlen( $origin_cep ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log(
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log(
 					'warning',
 					'AJAX CEP origem não configurado',
 					array(
@@ -207,27 +207,27 @@ class CepCerto_Frontend {
 
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log( 'warning', 'AJAX produto não encontrado', array( 'product_id' => $product_id ) );
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log( 'warning', 'AJAX produto não encontrado', array( 'product_id' => $product_id ) );
 			}
 			wp_send_json_error( array( 'message' => __( 'Produto não encontrado.', 'cepcerto' ) ), 404 );
 		}
 
-		$dimensions = $this->get_product_dimensions( $product );
+		$dimensions = $this->get_product_dimensions();
 		if ( empty( $dimensions ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log( 'warning', 'AJAX sem dimensões/peso', array( 'product_id' => $product_id ) );
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log( 'warning', 'AJAX sem dimensões/peso configurados', array( 'product_id' => $product_id ) );
 			}
-			wp_send_json_error( array( 'message' => __( 'Não foi possível obter peso/dimensões do produto.', 'cepcerto' ) ), 400 );
+			wp_send_json_error( array( 'message' => __( 'Não foi possível obter peso/dimensões configurados.', 'cepcerto' ) ), 400 );
 		}
 
 		$product_price        = (float) wc_get_price_to_display( $product );
-		$min_order_value      = (float) get_option( 'cepcerto_min_order_value', 50 );
+		$min_order_value      = (float) cepcer_get_option( 'cepcer_min_order_value', 50 );
 		$base_valor_encomenda = $product_price > 0 ? $product_price : $min_order_value;
 		$valor_encomenda      = max( $min_order_value, min( 35000, $base_valor_encomenda ) );
 
-		if ( class_exists( 'CepCerto_Logger' ) ) {
-			CepCerto_Logger::log(
+		if ( class_exists( 'CEPCER_Logger' ) ) {
+			CEPCER_Logger::log(
 				'info',
 				'AJAX calcular frete produto',
 				array(
@@ -239,7 +239,7 @@ class CepCerto_Frontend {
 			);
 		}
 
-		$api    = new CepCerto_Api();
+		$api    = new CEPCER_Api();
 		$result = $api->quote_get(
 			$origin_cep,
 			$cep_destino,
@@ -251,8 +251,8 @@ class CepCerto_Frontend {
 		);
 
 		if ( is_wp_error( $result ) ) {
-			if ( class_exists( 'CepCerto_Logger' ) ) {
-				CepCerto_Logger::log(
+			if ( class_exists( 'CEPCER_Logger' ) ) {
+				CEPCER_Logger::log(
 					'error',
 					'AJAX erro na cotação',
 					array(
@@ -275,23 +275,18 @@ class CepCerto_Frontend {
 	}
 
 	/**
-	 * Get product dimensions and weight.
+	 * Get configured package dimensions and weight.
 	 *
 	 * @since 1.0.0
-	 * @param WC_Product $product Product object.
-	 * @return array|false Product dimensions or false on failure.
+	 * @return array|false Configured package dimensions or false on failure.
 	 */
-	private function get_product_dimensions( $product ) {
-		$default_width  = $this->to_float( get_option( 'cepcerto_default_width', 10 ) );
-		$default_height = $this->to_float( get_option( 'cepcerto_default_height', 10 ) );
-		$default_length = $this->to_float( get_option( 'cepcerto_default_length', 10 ) );
-		$default_weight = $this->to_float( get_option( 'cepcerto_default_weight', 1 ) );
+	private function get_product_dimensions() {
+		$default_width  = $this->to_float( cepcer_get_option( 'cepcer_default_width', 15.2 ) );
+		$default_height = $this->to_float( cepcer_get_option( 'cepcer_default_height', 10.5 ) );
+		$default_length = $this->to_float( cepcer_get_option( 'cepcer_default_length', 20.0 ) );
+		$default_weight = $this->to_float( cepcer_get_option( 'cepcer_default_weight', 1 ) );
 
-		$product_weight = 0.0;
-		if ( $product instanceof WC_Product ) {
-			$product_weight = $this->to_float( $product->get_weight() );
-		}
-		$weight = $product_weight > 0 ? $this->convert_weight_to_kg( $product_weight ) : $this->convert_weight_to_kg( $default_weight );
+		$weight = $this->convert_weight_to_kg( $default_weight );
 		$width  = $this->convert_dimension_to_cm( $default_width );
 		$height = $this->convert_dimension_to_cm( $default_height );
 		$length = $this->convert_dimension_to_cm( $default_length );

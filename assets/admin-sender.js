@@ -14,12 +14,12 @@
 
 	var ajaxUrl = CepCertoSender.ajaxUrl;
 	var nonceCep = CepCertoSender.nonceCep;
-	var cepInput = document.getElementById('cepcerto_origin_cep');
-	var logradouroInput = document.getElementById('cepcerto_logradouro_remetente');
-	var bairroInput = document.getElementById('cepcerto_bairro_remetente');
-	var cpfCnpjInput = document.getElementById('cepcerto_cpf_cnpj_remetente');
-	var whatsappInput = document.getElementById('cepcerto_whatsapp_remetente');
-	var emailInput = document.getElementById('cepcerto_email_remetente');
+	var cepInput = document.getElementById('cepcer_origin_cep');
+	var logradouroInput = document.getElementById('cepcer_logradouro_remetente');
+	var bairroInput = document.getElementById('cepcer_bairro_remetente');
+	var cpfCnpjInput = document.getElementById('cepcer_cpf_cnpj_remetente');
+	var whatsappInput = document.getElementById('cepcer_whatsapp_remetente');
+	var emailInput = document.getElementById('cepcer_email_remetente');
 
 	function digitsOnly(v) {
 		return String(v || '').replace(/\D+/g, '');
@@ -98,7 +98,7 @@
 		var cep = digitsOnly(cepInput.value);
 		if (cep.length !== 8) return;
 
-		postAjax('cepcerto_consultar_cep_origem', {
+		postAjax('cepcer_consultar_cep_origem', {
 			_wpnonce: nonceCep,
 			cep: cep
 		}).then(function(resp) {

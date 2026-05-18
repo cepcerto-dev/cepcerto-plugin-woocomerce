@@ -162,7 +162,6 @@ function cepcer_migrate_legacy_options() {
 	}
 }
 add_action( 'plugins_loaded', 'cepcer_migrate_legacy_options', 1 );
-
 /**
  * Create default shipping box options when they do not exist yet.
  *
@@ -170,6 +169,7 @@ add_action( 'plugins_loaded', 'cepcer_migrate_legacy_options', 1 );
  * @return void
  */
 function cepcer_ensure_default_package_options() {
+
 	$defaults = array(
 		'cepcer_default_width'  => 15.2,
 		'cepcer_default_height' => 10.5,
@@ -223,7 +223,7 @@ function cepcer_migrate_legacy_shipping_methods() {
 	}
 
 	foreach ( $method_map as $legacy_id => $current_id ) {
-		$legacy_prefix = 'woocommerce_' . $legacy_id . '_';
+		$legacy_prefix  = 'woocommerce_' . $legacy_id . '_';
 		$current_prefix = 'woocommerce_' . $current_id . '_';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- One-time compatibility migration for WooCommerce shipping instance settings.
 		$options = $wpdb->get_results(
@@ -249,7 +249,6 @@ function cepcer_migrate_legacy_shipping_methods() {
 	cepcer_update_option( 'cepcer_shipping_method_migration_done', true );
 }
 add_action( 'plugins_loaded', 'cepcer_migrate_legacy_shipping_methods', 3 );
-
 /**
  * Plugin activation hook.
  *
@@ -260,6 +259,7 @@ add_action( 'plugins_loaded', 'cepcer_migrate_legacy_shipping_methods', 3 );
  * @return void
  */
 function cepcer_activate_plugin() {
+
 	cepcer_migrate_legacy_options();
 	cepcer_ensure_default_package_options();
 

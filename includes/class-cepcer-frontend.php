@@ -220,7 +220,6 @@ class CEPCER_Frontend {
 			}
 			wp_send_json_error( array( 'message' => __( 'Não foi possível obter peso/dimensões configurados.', 'cepcerto' ) ), 400 );
 		}
-
 		$product_price        = (float) wc_get_price_to_display( $product );
 		$min_order_value      = (float) cepcer_get_option( 'cepcer_min_order_value', 50 );
 		$base_valor_encomenda = $product_price > 0 ? $product_price : $min_order_value;
@@ -281,6 +280,7 @@ class CEPCER_Frontend {
 	 * @return array|false Configured package dimensions or false on failure.
 	 */
 	private function get_product_dimensions() {
+
 		$default_width  = $this->to_float( cepcer_get_option( 'cepcer_default_width', 15.2 ) );
 		$default_height = $this->to_float( cepcer_get_option( 'cepcer_default_height', 10.5 ) );
 		$default_length = $this->to_float( cepcer_get_option( 'cepcer_default_length', 20.0 ) );
@@ -290,7 +290,6 @@ class CEPCER_Frontend {
 		$width  = $this->convert_dimension_to_cm( $default_width );
 		$height = $this->convert_dimension_to_cm( $default_height );
 		$length = $this->convert_dimension_to_cm( $default_length );
-
 		if ( $weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0 ) {
 			return false;
 		}

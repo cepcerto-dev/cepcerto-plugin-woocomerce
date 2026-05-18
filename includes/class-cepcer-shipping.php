@@ -280,13 +280,13 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		 * @return array|false Package dimensions or false on failure.
 		 */
 		protected function get_package_dimensions() {
+
 			$default = $this->get_default_dimensions();
 
 			$weight = $this->convert_weight_to_kg( $default['weight'] );
 			$width  = $this->convert_dimension_to_cm( $default['width'] );
 			$height = $this->convert_dimension_to_cm( $default['height'] );
 			$length = $this->convert_dimension_to_cm( $default['length'] );
-
 			if ( $weight <= 0 || $width <= 0 || $height <= 0 || $length <= 0 ) {
 				return false;
 			}
@@ -313,7 +313,6 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				'weight' => $this->to_float( cepcer_get_option( 'cepcer_default_weight', 1 ) ),
 			);
 		}
-
 		/**
 		 * Convert dimension to centimeters.
 		 *

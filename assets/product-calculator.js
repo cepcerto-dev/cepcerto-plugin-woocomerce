@@ -169,13 +169,13 @@
 			resultEl.innerHTML = '<div class="cepcerto-result__loading"><span class="cepcerto-result__spinner"></span> Calculando...</div>';
 
 			var form = new FormData();
-			form.append( 'action', (window.CepCertoCalculator && window.CepCertoCalculator.action) || 'cepcer_calculate_product_shipping' );
-			form.append( 'nonce', (window.CepCertoCalculator && window.CepCertoCalculator.nonce) || '' );
+			form.append( 'action', (window.cepcer_ajax && window.cepcer_ajax.action) || (window.CepCertoCalculator && window.CepCertoCalculator.action) || 'cepcer_calculate_product_shipping' );
+			form.append( 'nonce', (window.cepcer_ajax && window.cepcer_ajax.nonce) || (window.CepCertoCalculator && window.CepCertoCalculator.nonce) || '' );
 			form.append( 'product_id', productId || '' );
 			form.append( 'postcode', cep );
 
 			fetch(
-				(window.CepCertoCalculator && window.CepCertoCalculator.ajaxUrl) || '/wp-admin/admin-ajax.php',
+				(window.cepcer_ajax && window.cepcer_ajax.ajax_url) || (window.CepCertoCalculator && window.CepCertoCalculator.ajaxUrl) || '/wp-admin/admin-ajax.php',
 				{
 					method: 'POST',
 					credentials: 'same-origin',

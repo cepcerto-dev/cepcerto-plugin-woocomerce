@@ -3,7 +3,7 @@
  * Plugin Name: CepCerto
  * Plugin URI: https://cepcerto.com/
  * Description: Plugin para cotação de fretes utilizando a API do CepCerto.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: CepCerto
  * Author URI: https://cepcerto.com
  * License: GPLv3
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'CEPCER_VERSION' ) ) {
-	define( 'CEPCER_VERSION', '1.0.0' );
+	define( 'CEPCER_VERSION', '1.0.1' );
 }
 
 if ( ! defined( 'CEPCER_PLUGIN_FILE' ) ) {

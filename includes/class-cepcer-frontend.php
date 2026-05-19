@@ -77,7 +77,17 @@ class CEPCER_Frontend {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'action'  => self::AJAX_ACTION,
-				'nonce'   => wp_create_nonce( 'cepcer_calculator' ),
+				'nonce'   => wp_create_nonce( 'cepcer_nonce' ),
+			)
+		);
+
+		wp_localize_script(
+			'cepcer-product',
+			'cepcer_ajax',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'action'   => self::AJAX_ACTION,
+				'nonce'    => wp_create_nonce( 'cepcer_nonce' ),
 			)
 		);
 	}
@@ -140,21 +150,7 @@ class CEPCER_Frontend {
 	 * @return void
 	 */
 	public function ajax_calculate() {
-		if ( class_exists( 'CEPCER_Logger' ) ) {
-			CEPCER_Logger::log(
-				'info',
-				'AJAX request recebido',
-				array(
-					'action'     => isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '',
-					'nonce'      => isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '',
-					'product_id' => isset( $_POST['product_id'] ) ? sanitize_text_field( wp_unslash( $_POST['product_id'] ) ) : '',
-					'postcode'   => isset( $_POST['postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['postcode'] ) ) : '',
-				)
-			);
-		}
-
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_calculator' ) ) {
+		if ( false === check_ajax_referer( 'cepcer_nonce', 'nonce', false ) ) {
 			if ( class_exists( 'CEPCER_Logger' ) ) {
 				CEPCER_Logger::log( 'warning', 'AJAX nonce inválido', array( 'action' => self::AJAX_ACTION ) );
 			}
@@ -163,6 +159,18 @@ class CEPCER_Frontend {
 					'message' => __( 'Nonce inválido. Recarregue a página e tente novamente.', 'cepcerto' ),
 				),
 				400
+			);
+		}
+
+		if ( class_exists( 'CEPCER_Logger' ) ) {
+			CEPCER_Logger::log(
+				'info',
+				'AJAX request recebido',
+				array(
+					'action'     => isset( $_POST['action'] ) ? sanitize_text_field( wp_unslash( $_POST['action'] ) ) : '',
+					'product_id' => isset( $_POST['product_id'] ) ? sanitize_text_field( wp_unslash( $_POST['product_id'] ) ) : '',
+					'postcode'   => isset( $_POST['postcode'] ) ? sanitize_text_field( wp_unslash( $_POST['postcode'] ) ) : '',
+				)
 			);
 		}
 

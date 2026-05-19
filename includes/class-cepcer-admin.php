@@ -335,7 +335,8 @@ class CEPCER_Admin {
 			'cepcer_debug',
 			array(
 				'type'              => 'boolean',
-				'sanitize_callback' => array( $this, 'sanitize_checkbox' ),
+				'sanitize_callback' => 'rest_sanitize_boolean',
+				'default'           => true,
 			)
 		);
 		register_setting(
@@ -412,6 +413,7 @@ class CEPCER_Admin {
 			'cepcer_settings_sender',
 			'cepcer_cpf_cnpj_remetente',
 			array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_cpf_cnpj_remetente' ),
 			)
 		);
@@ -419,6 +421,7 @@ class CEPCER_Admin {
 			'cepcer_settings_sender',
 			'cepcer_whatsapp_remetente',
 			array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_whatsapp_remetente' ),
 			)
 		);
@@ -426,21 +429,23 @@ class CEPCER_Admin {
 			'cepcer_settings_sender',
 			'cepcer_email_remetente',
 			array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_email_remetente' ),
 			)
 		);
 		register_setting(
-		'cepcer_settings_sender',
-		'cepcer_logradouro_remetente',
-		array(
-			'type'              => 'string',
-			'sanitize_callback' => 'sanitize_text_field',
-		)
-	);
+			'cepcer_settings_sender',
+			'cepcer_logradouro_remetente',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
 		register_setting(
 			'cepcer_settings_sender',
 			'cepcer_bairro_remetente',
 			array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_bairro_remetente' ),
 			)
 		);
@@ -448,17 +453,18 @@ class CEPCER_Admin {
 			'cepcer_settings_sender',
 			'cepcer_numero_endereco_remetente',
 			array(
+				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_numero_endereco_remetente' ),
 			)
 		);
 		register_setting(
-		'cepcer_settings_sender',
-		'cepcer_complemento_remetente',
-		array(
-			'type'              => 'string',
-			'sanitize_callback' => 'sanitize_text_field',
-		)
-	);
+			'cepcer_settings_sender',
+			'cepcer_complemento_remetente',
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			)
+		);
 	}
 
 	private function digits_only( $value ) {
@@ -517,6 +523,10 @@ class CEPCER_Admin {
 
 	public function sanitize_checkbox( $value ) {
 		return ( isset( $value ) && 'yes' === $value ) ? 'yes' : 'no';
+	}
+
+	private function is_debug_enabled( $value ) {
+		return in_array( $value, array( true, 1, '1', 'yes', 'true' ), true );
 	}
 
 	public function sanitize_display_locations( $value ) {
@@ -590,14 +600,15 @@ class CEPCER_Admin {
 		$base_url    = add_query_arg( array( 'page' => 'cepcerto' ), admin_url( 'admin.php' ) );
 		$ajax_url    = admin_url( 'admin-ajax.php' );
 		$nonce_saldo = wp_create_nonce( 'cepcer_consultar_saldo' );
-		$debug       = cepcer_get_option( 'cepcer_debug', 'yes' );
+		$debug       = cepcer_get_option( 'cepcer_debug', true );
+		$debug_on    = $this->is_debug_enabled( $debug );
 		$tabs        = array(
 			'sender'   => 'Dados remetente',
 			'pedidos'  => 'Pedidos',
 			'saldo'    => 'Saldo',
 			'settings' => 'Configurações',
 		);
-		if ( 'yes' === $debug ) {
+		if ( $debug_on ) {
 			$tabs['logs'] = 'Logs';
 		}
 
@@ -947,8 +958,9 @@ class CEPCER_Admin {
 	}
 
 	private function render_settings_tab() {
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
-		$debug = cepcer_get_option( 'cepcer_debug', 'yes' );
+		$token    = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$debug    = cepcer_get_option( 'cepcer_debug', true );
+		$debug_on = $this->is_debug_enabled( $debug );
 
 		$default_width   = cepcer_get_option( 'cepcer_default_width', 15.2 );
 		$default_height  = cepcer_get_option( 'cepcer_default_height', 10.5 );
@@ -1051,9 +1063,9 @@ class CEPCER_Admin {
 						<th scope="row">Debug</th>
 						<td>
 							<label>
-								<input type="hidden" name="cepcer_debug" value="no" />
-								<input name="cepcer_debug" type="checkbox" value="yes" <?php checked( $debug, 'yes' ); ?> />
-								<?php echo 'yes' === $debug ? 'Desativar' : 'Ativar'; ?>
+								<input type="hidden" name="cepcer_debug" value="0" />
+								<input name="cepcer_debug" type="checkbox" value="1" <?php checked( $debug_on ); ?> />
+								<?php echo $debug_on ? 'Desativar' : 'Ativar'; ?>
 							</label>
 						</td>
 					</tr>
@@ -1125,7 +1137,6 @@ class CEPCER_Admin {
 	}
 
 	private function render_logs_tab() {
-		$enabled      = cepcer_get_option( 'cepcer_debug', 'no' );
 		$file         = class_exists( 'CEPCER_Logger' ) ? CEPCER_Logger::get_latest_log_file() : false;
 		$download_url = wp_nonce_url( admin_url( 'admin-post.php?action=cepcer_download_log' ), 'cepcer_download_log' );
 

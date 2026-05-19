@@ -394,8 +394,8 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
-			$enabled = cepcer_get_option( 'cepcer_debug', 'no' );
-			if ( 'yes' !== $enabled ) {
+			$enabled = cepcer_get_option( 'cepcer_debug', false );
+			if ( ! in_array( $enabled, array( true, 1, '1', 'yes', 'true' ), true ) ) {
 				return;
 			}
 

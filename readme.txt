@@ -1,6 +1,6 @@
 === CepCerto ===
 Contributors: cepcerto
-Tags: shipping, woocommerce, brazil, correios, frete
+Tags: shipping, woocommerce, brazil, frete
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -184,15 +184,6 @@ This plugin relies on external third-party services to provide shipping calculat
 * Authentication token for API access
 
 **Privacy Policy:** https://cepcerto.com/politica-de-privacidade/
-
-= Correios =
-
-**Service:** Brazilian Postal Service CEP Lookup
-**Website:** https://buscacepinter.correios.com.br/
-**Purpose:** Provides a reference link for customers to find their postal codes.
-**Privacy Policy:** https://www.correios.com.br/falecomoscorreios/politica-de-privacidade-e-cookies
-
-**Data transmission:** This is only a hyperlink displayed to users. No data is automatically sent to Correios. Users may click the link and use Correios' website directly if they wish.
 
 == Privacy & Data Collection ==
 

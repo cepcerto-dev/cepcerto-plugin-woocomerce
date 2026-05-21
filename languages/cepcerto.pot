@@ -95,6 +95,3 @@ msgstr ""
 msgid "Erro ao calcular frete"
 msgstr ""
 
-#: includes/class-cepcer-frontend.php:88
-msgid "Não sei meu CEP"
-msgstr ""

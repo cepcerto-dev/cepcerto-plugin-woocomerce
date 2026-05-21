@@ -56,14 +56,6 @@ class CEPCER_Api {
 	const URL_RASTREIO_ENCOMENDA = self::DEFAULT_BASE_URL . 'encomenda-rastreio/';
 
 	/**
-	 * Correios CEP search URL.
-	 *
-	 * @since 1.0.0
-	 * @var string
-	 */
-	const URL_BUSCA_CEP_CORREIOS = 'https://buscacepinter.correios.com.br/app/endereco/index.php';
-
-	/**
 	 * API request timeout in seconds.
 	 *
 	 * @since 1.0.0

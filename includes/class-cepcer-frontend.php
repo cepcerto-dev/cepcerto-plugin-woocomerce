@@ -133,11 +133,6 @@ class CEPCER_Frontend {
 					data-product-id="<?php echo esc_attr( $product->get_id() ); ?>"
 				><?php esc_html_e( 'Calcular', 'cepcerto' ); ?></button>
 			</div>
-			<span class="cepcerto-calculator__link">
-				<a href="<?php echo esc_url( CEPCER_Api::URL_BUSCA_CEP_CORREIOS ); ?>" target="_blank" rel="noopener noreferrer">
-					<?php esc_html_e( 'Não sei meu CEP', 'cepcerto' ); ?>
-				</a>
-			</span>
 			<div id="cepcerto-result" class="cepcerto-result"></div>
 		</div>
 		<?php

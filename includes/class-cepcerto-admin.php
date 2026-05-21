@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class CEPCER_Admin {
+class CEPCERTO_Admin {
 
 	/**
 	 * Initialize admin features.
@@ -31,19 +31,19 @@ class CEPCER_Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect_legacy_pages' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-		add_action( 'admin_post_cepcer_download_log', array( $this, 'download_log' ) );
-		add_action( 'admin_post_cepcer_reset_settings', array( $this, 'handle_reset_settings' ) );
-		add_action( 'wp_ajax_cepcer_consultar_cep_origem', array( $this, 'ajax_consultar_cep_origem' ) );
-		add_action( 'wp_ajax_cepcer_consultar_saldo', array( $this, 'ajax_consultar_saldo' ) );
-		add_action( 'wp_ajax_cepcer_adicionar_credito', array( $this, 'ajax_adicionar_credito' ) );
-		add_action( 'wp_ajax_cepcer_gerar_etiqueta', array( $this, 'ajax_gerar_etiqueta' ) );
-		add_action( 'wp_ajax_cepcer_cancelar_etiqueta', array( $this, 'ajax_cancelar_etiqueta' ) );
-		add_action( 'wp_ajax_cepcer_financeiro', array( $this, 'ajax_financeiro' ) );
+		add_action( 'admin_post_cepcerto_download_log', array( $this, 'download_log' ) );
+		add_action( 'admin_post_cepcerto_reset_settings', array( $this, 'handle_reset_settings' ) );
+		add_action( 'wp_ajax_cepcerto_consultar_cep_origem', array( $this, 'ajax_consultar_cep_origem' ) );
+		add_action( 'wp_ajax_cepcerto_consultar_saldo', array( $this, 'ajax_consultar_saldo' ) );
+		add_action( 'wp_ajax_cepcerto_adicionar_credito', array( $this, 'ajax_adicionar_credito' ) );
+		add_action( 'wp_ajax_cepcerto_gerar_etiqueta', array( $this, 'ajax_gerar_etiqueta' ) );
+		add_action( 'wp_ajax_cepcerto_cancelar_etiqueta', array( $this, 'ajax_cancelar_etiqueta' ) );
+		add_action( 'wp_ajax_cepcerto_financeiro', array( $this, 'ajax_financeiro' ) );
 
-		add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_woocommerce_order_tracking_column' ), 20 );
-		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'render_woocommerce_order_tracking_column' ), 20, 2 );
-		add_filter( 'woocommerce_shop_order_list_table_columns', array( $this, 'add_woocommerce_order_tracking_column' ), 20 );
-		add_action( 'woocommerce_shop_order_list_table_custom_column', array( $this, 'render_woocommerce_order_tracking_column_hpos' ), 20, 2 );
+		add_filter( 'manage_edit-shop_order_columns', array( $this, 'cepcerto_add_order_tracking_column' ), 20 );
+		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'cepcerto_render_order_tracking_column' ), 20, 2 );
+		add_filter( 'woocommerce_shop_order_list_table_columns', array( $this, 'cepcerto_add_order_tracking_column' ), 20 );
+		add_action( 'woocommerce_shop_order_list_table_custom_column', array( $this, 'cepcerto_render_order_tracking_column_hpos' ), 20, 2 );
 	}
 
 	/**
@@ -62,84 +62,84 @@ class CEPCER_Admin {
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
 		wp_enqueue_script(
-			'cepcer-admin-header',
-			CEPCER_PLUGIN_URL . 'assets/admin-header' . $suffix . '.js',
+			'cepcerto-admin-header',
+			CEPCERTO_PLUGIN_URL . 'assets/admin-header' . $suffix . '.js',
 			array(),
-			CEPCER_VERSION,
+			CEPCERTO_VERSION,
 			true
 		);
 		wp_localize_script(
-			'cepcer-admin-header',
+			'cepcerto-admin-header',
 			'CepCertoAdmin',
 			array(
 				'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-				'nonceSaldo'  => wp_create_nonce( 'cepcer_consultar_saldo' ),
+				'nonceSaldo'  => wp_create_nonce( 'cepcerto_consultar_saldo' ),
 			)
 		);
 
 		if ( 'sender' === $tab ) {
 			wp_enqueue_script(
-				'cepcer-admin-sender',
-				CEPCER_PLUGIN_URL . 'assets/admin-sender' . $suffix . '.js',
+				'cepcerto-admin-sender',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-sender' . $suffix . '.js',
 				array(),
-				CEPCER_VERSION,
+				CEPCERTO_VERSION,
 				true
 			);
 			wp_localize_script(
-				'cepcer-admin-sender',
+				'cepcerto-admin-sender',
 				'CepCertoSender',
 				array(
 					'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
-					'nonceCep' => wp_create_nonce( 'cepcer_consultar_cep_origem' ),
+					'nonceCep' => wp_create_nonce( 'cepcerto_consultar_cep_origem' ),
 				)
 			);
 		}
 
 		if ( 'pedidos' === $tab ) {
 			wp_enqueue_script(
-				'cepcer-admin-orders',
-				CEPCER_PLUGIN_URL . 'assets/admin-orders' . $suffix . '.js',
+				'cepcerto-admin-orders',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-orders' . $suffix . '.js',
 				array(),
-				CEPCER_VERSION,
+				CEPCERTO_VERSION,
 				true
 			);
 			wp_localize_script(
-				'cepcer-admin-orders',
+				'cepcerto-admin-orders',
 				'CepCertoOrders',
 				array(
 					'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
-					'nonce'       => wp_create_nonce( 'cepcer_etiqueta' ),
-					'urlRastreio' => CEPCER_Api::URL_RASTREIO_ENCOMENDA,
+					'nonce'       => wp_create_nonce( 'cepcerto_etiqueta' ),
+					'urlRastreio' => CEPCERTO_Api::URL_RASTREIO_ENCOMENDA,
 				)
 			);
 		}
 
 		if ( 'saldo' === $tab ) {
 			wp_enqueue_script(
-				'cepcer-admin-saldo',
-				CEPCER_PLUGIN_URL . 'assets/admin-saldo' . $suffix . '.js',
+				'cepcerto-admin-saldo',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-saldo' . $suffix . '.js',
 				array(),
-				CEPCER_VERSION,
+				CEPCERTO_VERSION,
 				true
 			);
 			wp_localize_script(
-				'cepcer-admin-saldo',
+				'cepcerto-admin-saldo',
 				'CepCertoSaldo',
 				array(
 					'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-					'nonceSaldo'       => wp_create_nonce( 'cepcer_consultar_saldo' ),
-					'nonceCredito'     => wp_create_nonce( 'cepcer_adicionar_credito' ),
-					'nonceFinanceiro'  => wp_create_nonce( 'cepcer_financeiro' ),
+					'nonceSaldo'       => wp_create_nonce( 'cepcerto_consultar_saldo' ),
+					'nonceCredito'     => wp_create_nonce( 'cepcerto_adicionar_credito' ),
+					'nonceFinanceiro'  => wp_create_nonce( 'cepcerto_financeiro' ),
 				)
 			);
 		}
 
 		if ( 'logs' === $tab ) {
 			wp_enqueue_script(
-				'cepcer-admin-logs',
-				CEPCER_PLUGIN_URL . 'assets/admin-logs' . $suffix . '.js',
+				'cepcerto-admin-logs',
+				CEPCERTO_PLUGIN_URL . 'assets/admin-logs' . $suffix . '.js',
 				array(),
-				CEPCER_VERSION,
+				CEPCERTO_VERSION,
 				true
 			);
 		}
@@ -165,16 +165,16 @@ class CEPCER_Admin {
 	 * @param array $columns Existing columns.
 	 * @return array Modified columns.
 	 */
-	public function add_woocommerce_order_tracking_column( $columns ) {
+	public function cepcerto_add_order_tracking_column( $columns ) {
 		if ( ! is_array( $columns ) ) {
 			$columns = array();
 		}
-		$columns['cepcer_rastreio'] = __( 'Rastreio', 'cepcerto' );
+		$columns['cepcerto_rastreio'] = __( 'Rastreio', 'cepcerto' );
 		return $columns;
 	}
 
-	public function render_woocommerce_order_tracking_column( $column, $post_id ) {
-		if ( 'cepcer_rastreio' !== $column ) {
+	public function cepcerto_render_order_tracking_column( $column, $post_id ) {
+		if ( 'cepcerto_rastreio' !== $column ) {
 			return;
 		}
 		$order = function_exists( 'wc_get_order' ) ? wc_get_order( $post_id ) : null;
@@ -185,8 +185,8 @@ class CEPCER_Admin {
 		$this->echo_tracking_cell( $order );
 	}
 
-	public function render_woocommerce_order_tracking_column_hpos( $column, $order ) {
-		if ( 'cepcer_rastreio' !== $column ) {
+	public function cepcerto_render_order_tracking_column_hpos( $column, $order ) {
+		if ( 'cepcerto_rastreio' !== $column ) {
 			return;
 		}
 		if ( ! ( $order instanceof WC_Order ) ) {
@@ -197,7 +197,7 @@ class CEPCER_Admin {
 	}
 
 	private function echo_tracking_cell( $order ) {
-		$etiqueta     = $this->get_order_meta_with_legacy( $order, '_cepcer_etiqueta' );
+		$etiqueta     = $this->get_order_meta_with_legacy( $order, '_cepcerto_etiqueta' );
 		$has_etiqueta = is_array( $etiqueta ) && ! empty( $etiqueta['codigoObjeto'] );
 		if ( ! $has_etiqueta ) {
 			echo '<span style="color:#999;">—</span>';
@@ -209,7 +209,7 @@ class CEPCER_Admin {
 		$link   = '';
 		$evt    = null;
 		if ( is_array( $track ) ) {
-			$link = ! empty( $track['link_cepcerto'] ) ? (string) $track['link_cepcerto'] : ( CEPCER_Api::URL_RASTREIO_ENCOMENDA . rawurlencode( $codigo ) );
+			$link = ! empty( $track['link_cepcerto'] ) ? (string) $track['link_cepcerto'] : ( CEPCERTO_Api::URL_RASTREIO_ENCOMENDA . rawurlencode( $codigo ) );
 			if ( ! empty( $track['eventos'] ) && is_array( $track['eventos'] ) ) {
 				$evt = $track['eventos'][0];
 			}
@@ -235,15 +235,15 @@ class CEPCER_Admin {
 		if ( '' === $codigo ) {
 			return null;
 		}
-		$key    = 'cepcer_track_' . md5( $codigo );
+		$key    = 'cepcerto_track_' . md5( $codigo );
 		$cached = get_transient( $key );
 		if ( false !== $cached && ( is_array( $cached ) || is_object( $cached ) ) ) {
 			return $cached;
 		}
-		if ( ! class_exists( 'CEPCER_Api' ) ) {
+		if ( ! class_exists( 'CEPCERTO_Api' ) ) {
 			return null;
 		}
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->rastreio( $codigo );
 		if ( is_wp_error( $result ) || ! is_array( $result ) ) {
 			return null;
@@ -253,7 +253,7 @@ class CEPCER_Admin {
 	}
 
 	/**
-	 * Get order meta with fallback to the previous cepcerto_ key.
+	 * Get order meta with fallback to the previous key.
 	 *
 	 * @since 1.0.0
 	 * @param WC_Order $order    Order object.
@@ -262,11 +262,11 @@ class CEPCER_Admin {
 	 */
 	private function get_order_meta_with_legacy( $order, $meta_key ) {
 		$value = $order->get_meta( $meta_key, true );
-		if ( ! empty( $value ) || 0 !== strpos( (string) $meta_key, '_cepcer_' ) ) {
+		if ( ! empty( $value ) || 0 !== strpos( (string) $meta_key, '_cepcerto_' ) ) {
 			return $value;
 		}
 
-		$legacy_key = '_cepcerto_' . substr( (string) $meta_key, strlen( '_cepcer_' ) );
+		$legacy_key = '_' . cepcerto_get_legacy_prefix() . substr( (string) $meta_key, strlen( '_cepcerto_' ) );
 		return $order->get_meta( $legacy_key, true );
 	}
 
@@ -331,8 +331,8 @@ class CEPCER_Admin {
 	 */
 	public function register_settings() {
 		register_setting(
-			'cepcer_settings',
-			'cepcer_debug',
+			'cepcerto_settings',
+			'cepcerto_debug',
 			array(
 				'type'              => 'boolean',
 				'sanitize_callback' => 'rest_sanitize_boolean',
@@ -340,8 +340,8 @@ class CEPCER_Admin {
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_default_width',
+			'cepcerto_settings',
+			'cepcerto_default_width',
 			array(
 				'type'              => 'number',
 				'sanitize_callback' => 'floatval',
@@ -349,8 +349,8 @@ class CEPCER_Admin {
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_default_height',
+			'cepcerto_settings',
+			'cepcerto_default_height',
 			array(
 				'type'              => 'number',
 				'sanitize_callback' => 'floatval',
@@ -358,8 +358,8 @@ class CEPCER_Admin {
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_default_length',
+			'cepcerto_settings',
+			'cepcerto_default_length',
 			array(
 				'type'              => 'number',
 				'sanitize_callback' => 'floatval',
@@ -367,8 +367,8 @@ class CEPCER_Admin {
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_default_weight',
+			'cepcerto_settings',
+			'cepcerto_default_weight',
 			array(
 				'type'              => 'number',
 				'sanitize_callback' => 'floatval',
@@ -376,16 +376,16 @@ class CEPCER_Admin {
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_min_order_value',
+			'cepcerto_settings',
+			'cepcerto_min_order_value',
 			array(
 				'type'              => 'number',
 				'sanitize_callback' => 'floatval',
 			)
 		);
 		register_setting(
-			'cepcer_settings',
-			'cepcer_display_locations',
+			'cepcerto_settings',
+			'cepcerto_display_locations',
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( $this, 'sanitize_display_locations' ),
@@ -394,72 +394,72 @@ class CEPCER_Admin {
 		);
 
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_origin_cep',
+			'cepcerto_settings_sender',
+			'cepcerto_origin_cep',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_nome_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_nome_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_cpf_cnpj_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_cpf_cnpj_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_cpf_cnpj_remetente' ),
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_whatsapp_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_whatsapp_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_whatsapp_remetente' ),
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_email_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_email_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_email_remetente' ),
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_logradouro_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_logradouro_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_bairro_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_bairro_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_bairro_remetente' ),
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_numero_endereco_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_numero_endereco_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => array( $this, 'sanitize_numero_endereco_remetente' ),
 			)
 		);
 		register_setting(
-			'cepcer_settings_sender',
-			'cepcer_complemento_remetente',
+			'cepcerto_settings_sender',
+			'cepcerto_complemento_remetente',
 			array(
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
@@ -476,8 +476,8 @@ class CEPCER_Admin {
 	public function sanitize_cpf_cnpj_remetente( $value ) {
 		$digits = $this->digits_only( $value );
 		if ( '' === $digits || ( 11 !== strlen( $digits ) && 14 !== strlen( $digits ) ) ) {
-			add_settings_error( 'cepcer_settings_sender', 'cepcer_cpf_cnpj_remetente', 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.' );
-			return (string) cepcer_get_option( 'cepcer_cpf_cnpj_remetente', '' );
+			add_settings_error( 'cepcerto_settings_sender', 'cepcerto_cpf_cnpj_remetente', 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.' );
+			return (string) cepcerto_get_option( 'cepcerto_cpf_cnpj_remetente', '' );
 		}
 		return $digits;
 	}
@@ -486,8 +486,8 @@ class CEPCER_Admin {
 		$digits = $this->digits_only( $value );
 		$len    = strlen( $digits );
 		if ( '' === $digits || ( 10 > $len || 11 < $len ) ) {
-			add_settings_error( 'cepcer_settings_sender', 'cepcer_whatsapp_remetente', 'Informe um WhatsApp com DDD (10 ou 11 dígitos).' );
-			return (string) cepcer_get_option( 'cepcer_whatsapp_remetente', '' );
+			add_settings_error( 'cepcerto_settings_sender', 'cepcerto_whatsapp_remetente', 'Informe um WhatsApp com DDD (10 ou 11 dígitos).' );
+			return (string) cepcerto_get_option( 'cepcerto_whatsapp_remetente', '' );
 		}
 		return $digits;
 	}
@@ -495,8 +495,8 @@ class CEPCER_Admin {
 	public function sanitize_email_remetente( $value ) {
 		$email = sanitize_email( (string) $value );
 		if ( '' === $email || ! is_email( $email ) ) {
-			add_settings_error( 'cepcer_settings_sender', 'cepcer_email_remetente', 'Informe um e-mail válido.' );
-			return (string) cepcer_get_option( 'cepcer_email_remetente', '' );
+			add_settings_error( 'cepcerto_settings_sender', 'cepcerto_email_remetente', 'Informe um e-mail válido.' );
+			return (string) cepcerto_get_option( 'cepcerto_email_remetente', '' );
 		}
 		return $email;
 	}
@@ -505,8 +505,8 @@ class CEPCER_Admin {
 		$value = sanitize_text_field( (string) $value );
 		$value = trim( $value );
 		if ( '' === $value ) {
-			add_settings_error( 'cepcer_settings_sender', 'cepcer_bairro_remetente', 'Informe o bairro.' );
-			return (string) cepcer_get_option( 'cepcer_bairro_remetente', '' );
+			add_settings_error( 'cepcerto_settings_sender', 'cepcerto_bairro_remetente', 'Informe o bairro.' );
+			return (string) cepcerto_get_option( 'cepcerto_bairro_remetente', '' );
 		}
 		return $value;
 	}
@@ -515,8 +515,8 @@ class CEPCER_Admin {
 		$value = sanitize_text_field( (string) $value );
 		$value = trim( $value );
 		if ( '' === $value ) {
-			add_settings_error( 'cepcer_settings_sender', 'cepcer_numero_endereco_remetente', 'Informe o número do endereço.' );
-			return (string) cepcer_get_option( 'cepcer_numero_endereco_remetente', '' );
+			add_settings_error( 'cepcerto_settings_sender', 'cepcerto_numero_endereco_remetente', 'Informe o número do endereço.' );
+			return (string) cepcerto_get_option( 'cepcerto_numero_endereco_remetente', '' );
 		}
 		return $value;
 	}
@@ -543,23 +543,23 @@ class CEPCER_Admin {
 
 	private function get_resettable_options() {
 		return array(
-			'cepcer_token_cliente_postagem',
-			'cepcer_origin_cep',
-			'cepcer_nome_remetente',
-			'cepcer_cpf_cnpj_remetente',
-			'cepcer_whatsapp_remetente',
-			'cepcer_email_remetente',
-			'cepcer_logradouro_remetente',
-			'cepcer_bairro_remetente',
-			'cepcer_numero_endereco_remetente',
-			'cepcer_complemento_remetente',
-			'cepcer_debug',
-			'cepcer_default_width',
-			'cepcer_default_height',
-			'cepcer_default_length',
-			'cepcer_default_weight',
-			'cepcer_min_order_value',
-			'cepcer_display_locations',
+			'cepcerto_token_cliente_postagem',
+			'cepcerto_origin_cep',
+			'cepcerto_nome_remetente',
+			'cepcerto_cpf_cnpj_remetente',
+			'cepcerto_whatsapp_remetente',
+			'cepcerto_email_remetente',
+			'cepcerto_logradouro_remetente',
+			'cepcerto_bairro_remetente',
+			'cepcerto_numero_endereco_remetente',
+			'cepcerto_complemento_remetente',
+			'cepcerto_debug',
+			'cepcerto_default_width',
+			'cepcerto_default_height',
+			'cepcerto_default_length',
+			'cepcerto_default_weight',
+			'cepcerto_min_order_value',
+			'cepcerto_display_locations',
 		);
 	}
 
@@ -568,10 +568,10 @@ class CEPCER_Admin {
 			wp_die( 'Sem permissão.' );
 		}
 
-		check_admin_referer( 'cepcer_reset_settings' );
+		check_admin_referer( 'cepcerto_reset_settings' );
 
 		foreach ( $this->get_resettable_options() as $option_name ) {
-			cepcer_delete_option( (string) $option_name );
+			cepcerto_delete_option( (string) $option_name );
 		}
 
 		wp_safe_redirect(
@@ -599,8 +599,8 @@ class CEPCER_Admin {
 
 		$base_url    = add_query_arg( array( 'page' => 'cepcerto' ), admin_url( 'admin.php' ) );
 		$ajax_url    = admin_url( 'admin-ajax.php' );
-		$nonce_saldo = wp_create_nonce( 'cepcer_consultar_saldo' );
-		$debug       = cepcer_get_option( 'cepcer_debug', true );
+		$nonce_saldo = wp_create_nonce( 'cepcerto_consultar_saldo' );
+		$debug       = cepcerto_get_option( 'cepcerto_debug', true );
 		$debug_on    = $this->is_debug_enabled( $debug );
 		$tabs        = array(
 			'sender'   => 'Dados remetente',
@@ -706,15 +706,15 @@ class CEPCER_Admin {
 		);
 
 		$ajax_url       = admin_url( 'admin-ajax.php' );
-		$nonce_etiqueta = wp_create_nonce( 'cepcer_etiqueta' );
+		$nonce_etiqueta = wp_create_nonce( 'cepcerto_etiqueta' );
 
 		$statuses = function_exists( 'wc_get_order_statuses' ) ? wc_get_order_statuses() : array();
 		?>
 		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="margin: 10px 0 15px;">
 			<input type="hidden" name="page" value="cepcerto" />
 			<input type="hidden" name="tab" value="pedidos" />
-			<label for="cepcer_orders_status"><strong>Status</strong></label>
-			<select name="status" id="cepcer_orders_status">
+			<label for="cepcerto_orders_status"><strong>Status</strong></label>
+			<select name="status" id="cepcerto_orders_status">
 				<option value="all" <?php selected( '' === $status ); ?>>Todos</option>
 				<?php foreach ( $statuses as $key => $label ) : ?>
 					<?php $clean_key = is_string( $key ) ? str_replace( 'wc-', '', $key ) : ''; ?>
@@ -762,7 +762,7 @@ class CEPCER_Admin {
 							$shipping_method = '-';
 						}
 
-						$etiqueta       = $this->get_order_meta_with_legacy( $order, '_cepcer_etiqueta' );
+						$etiqueta       = $this->get_order_meta_with_legacy( $order, '_cepcerto_etiqueta' );
 						$has_etiqueta   = is_array( $etiqueta ) && ! empty( $etiqueta['codigoObjeto'] );
 						$codigo_objeto  = $has_etiqueta ? (string) $etiqueta['codigoObjeto'] : '';
 						$pdf_url        = $has_etiqueta && ! empty( $etiqueta['pdfUrlEtiqueta'] ) ? (string) $etiqueta['pdfUrlEtiqueta'] : '';
@@ -844,75 +844,75 @@ class CEPCER_Admin {
 	}
 
 	private function render_sender_tab() {
-		$origin                    = cepcer_get_option( 'cepcer_origin_cep', '' );
-		$nome_remetente            = cepcer_get_option( 'cepcer_nome_remetente', '' );
-		$cpf_cnpj_remetente        = cepcer_get_option( 'cepcer_cpf_cnpj_remetente', '' );
-		$whatsapp_remetente        = cepcer_get_option( 'cepcer_whatsapp_remetente', '' );
-		$email_remetente           = cepcer_get_option( 'cepcer_email_remetente', '' );
-		$logradouro_remetente      = cepcer_get_option( 'cepcer_logradouro_remetente', '' );
-		$bairro_remetente          = cepcer_get_option( 'cepcer_bairro_remetente', '' );
-		$numero_endereco_remetente = cepcer_get_option( 'cepcer_numero_endereco_remetente', '' );
-		$complemento_remetente     = cepcer_get_option( 'cepcer_complemento_remetente', '' );
+		$origin                    = cepcerto_get_option( 'cepcerto_origin_cep', '' );
+		$nome_remetente            = cepcerto_get_option( 'cepcerto_nome_remetente', '' );
+		$cpf_cnpj_remetente        = cepcerto_get_option( 'cepcerto_cpf_cnpj_remetente', '' );
+		$whatsapp_remetente        = cepcerto_get_option( 'cepcerto_whatsapp_remetente', '' );
+		$email_remetente           = cepcerto_get_option( 'cepcerto_email_remetente', '' );
+		$logradouro_remetente      = cepcerto_get_option( 'cepcerto_logradouro_remetente', '' );
+		$bairro_remetente          = cepcerto_get_option( 'cepcerto_bairro_remetente', '' );
+		$numero_endereco_remetente = cepcerto_get_option( 'cepcerto_numero_endereco_remetente', '' );
+		$complemento_remetente     = cepcerto_get_option( 'cepcerto_complemento_remetente', '' );
 		$ajax_url                  = admin_url( 'admin-ajax.php' );
-		$nonce_cep                 = wp_create_nonce( 'cepcer_consultar_cep_origem' );
+		$nonce_cep                 = wp_create_nonce( 'cepcerto_consultar_cep_origem' );
 		?>
 		<form method="post" action="options.php">
-			<?php settings_fields( 'cepcer_settings_sender' ); ?>
-			<?php settings_errors( 'cepcer_settings_sender' ); ?>
+			<?php settings_fields( 'cepcerto_settings_sender' ); ?>
+			<?php settings_errors( 'cepcerto_settings_sender' ); ?>
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
-						<th scope="row"><label for="cepcer_nome_remetente">Nome completo (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_nome_remetente">Nome completo (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_nome_remetente" id="cepcer_nome_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $nome_remetente ); ?>" required />
+							<input name="cepcerto_nome_remetente" id="cepcerto_nome_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $nome_remetente ); ?>" required />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_cpf_cnpj_remetente">CPF ou CNPJ (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_cpf_cnpj_remetente">CPF ou CNPJ (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_cpf_cnpj_remetente" id="cepcer_cpf_cnpj_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $cpf_cnpj_remetente ); ?>" required inputmode="numeric" autocomplete="off" />
+							<input name="cepcerto_cpf_cnpj_remetente" id="cepcerto_cpf_cnpj_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $cpf_cnpj_remetente ); ?>" required inputmode="numeric" autocomplete="off" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_whatsapp_remetente">WhatsApp (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_whatsapp_remetente">WhatsApp (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_whatsapp_remetente" id="cepcer_whatsapp_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $whatsapp_remetente ); ?>" required inputmode="numeric" autocomplete="off" />
+							<input name="cepcerto_whatsapp_remetente" id="cepcerto_whatsapp_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $whatsapp_remetente ); ?>" required inputmode="numeric" autocomplete="off" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_email_remetente">E-mail (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_email_remetente">E-mail (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_email_remetente" id="cepcer_email_remetente" type="email" class="regular-text" value="<?php echo esc_attr( $email_remetente ); ?>" required autocomplete="email" />
+							<input name="cepcerto_email_remetente" id="cepcerto_email_remetente" type="email" class="regular-text" value="<?php echo esc_attr( $email_remetente ); ?>" required autocomplete="email" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_origin_cep">CEP de origem</label></th>
+						<th scope="row"><label for="cepcerto_origin_cep">CEP de origem</label></th>
 						<td>
-							<input name="cepcer_origin_cep" id="cepcer_origin_cep" type="text" class="regular-text" value="<?php echo esc_attr( $origin ); ?>" />
+							<input name="cepcerto_origin_cep" id="cepcerto_origin_cep" type="text" class="regular-text" value="<?php echo esc_attr( $origin ); ?>" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_logradouro_remetente">Logradouro (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_logradouro_remetente">Logradouro (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_logradouro_remetente" id="cepcer_logradouro_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $logradouro_remetente ); ?>" />
+							<input name="cepcerto_logradouro_remetente" id="cepcerto_logradouro_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $logradouro_remetente ); ?>" />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_bairro_remetente">Bairro (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_bairro_remetente">Bairro (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_bairro_remetente" id="cepcer_bairro_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $bairro_remetente ); ?>" required />
+							<input name="cepcerto_bairro_remetente" id="cepcerto_bairro_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $bairro_remetente ); ?>" required />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_numero_endereco_remetente">Número (obrigatório)</label></th>
+						<th scope="row"><label for="cepcerto_numero_endereco_remetente">Número (obrigatório)</label></th>
 						<td>
-							<input name="cepcer_numero_endereco_remetente" id="cepcer_numero_endereco_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $numero_endereco_remetente ); ?>" required />
+							<input name="cepcerto_numero_endereco_remetente" id="cepcerto_numero_endereco_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $numero_endereco_remetente ); ?>" required />
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_complemento_remetente">Complemento (opcional)</label></th>
+						<th scope="row"><label for="cepcerto_complemento_remetente">Complemento (opcional)</label></th>
 						<td>
-							<input name="cepcer_complemento_remetente" id="cepcer_complemento_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $complemento_remetente ); ?>" />
+							<input name="cepcerto_complemento_remetente" id="cepcerto_complemento_remetente" type="text" class="regular-text" value="<?php echo esc_attr( $complemento_remetente ); ?>" />
 						</td>
 					</tr>
 				</tbody>
@@ -928,12 +928,12 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_consultar_cep_origem' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_consultar_cep_origem' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
 		$cep    = isset( $_POST['cep'] ) ? sanitize_text_field( wp_unslash( $_POST['cep'] ) ) : '';
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->consultar_cep( $cep );
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error(
@@ -958,54 +958,54 @@ class CEPCER_Admin {
 	}
 
 	private function render_settings_tab() {
-		$token    = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
-		$debug    = cepcer_get_option( 'cepcer_debug', true );
+		$token    = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
+		$debug    = cepcerto_get_option( 'cepcerto_debug', true );
 		$debug_on = $this->is_debug_enabled( $debug );
 
-		$default_width   = cepcer_get_option( 'cepcer_default_width', 15.2 );
-		$default_height  = cepcer_get_option( 'cepcer_default_height', 10.5 );
-		$default_length  = cepcer_get_option( 'cepcer_default_length', 20.0 );
-		$default_weight  = cepcer_get_option( 'cepcer_default_weight', 1 );
-		$min_order_value = cepcer_get_option( 'cepcer_min_order_value', 50 );
+		$default_width   = cepcerto_get_option( 'cepcerto_default_width', 15.2 );
+		$default_height  = cepcerto_get_option( 'cepcerto_default_height', 10.5 );
+		$default_length  = cepcerto_get_option( 'cepcerto_default_length', 20.0 );
+		$default_weight  = cepcerto_get_option( 'cepcerto_default_weight', 1 );
+		$min_order_value = cepcerto_get_option( 'cepcerto_min_order_value', 50 );
 		?>
 		<form method="post" action="options.php">
-			<?php settings_fields( 'cepcer_settings' ); ?>
+			<?php settings_fields( 'cepcerto_settings' ); ?>
 
 			<h2 class="title">Tamanho da Caixa / Peso padrão</h2>
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
-						<th scope="row"><label for="cepcer_default_width">Largura da caixa (cm)</label></th>
+						<th scope="row"><label for="cepcerto_default_width">Largura da caixa (cm)</label></th>
 						<td>
-							<input name="cepcer_default_width" id="cepcer_default_width" type="number" step="0.01" min="15.2" value="<?php echo esc_attr( $default_width ); ?>" />
+							<input name="cepcerto_default_width" id="cepcerto_default_width" type="number" step="0.01" min="15.2" value="<?php echo esc_attr( $default_width ); ?>" />
 							<p class="description">Mínimo: 15.2 cm</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_default_height">Altura da caixa (cm)</label></th>
+						<th scope="row"><label for="cepcerto_default_height">Altura da caixa (cm)</label></th>
 						<td>
-							<input name="cepcer_default_height" id="cepcer_default_height" type="number" step="0.01" min="10.5" value="<?php echo esc_attr( $default_height ); ?>" />
+							<input name="cepcerto_default_height" id="cepcerto_default_height" type="number" step="0.01" min="10.5" value="<?php echo esc_attr( $default_height ); ?>" />
 							<p class="description">Mínimo: 10.5 cm</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_default_length">Comprimento da caixa (cm)</label></th>
+						<th scope="row"><label for="cepcerto_default_length">Comprimento da caixa (cm)</label></th>
 						<td>
-							<input name="cepcer_default_length" id="cepcer_default_length" type="number" step="0.01" min="20.0" value="<?php echo esc_attr( $default_length ); ?>" />
+							<input name="cepcerto_default_length" id="cepcerto_default_length" type="number" step="0.01" min="20.0" value="<?php echo esc_attr( $default_length ); ?>" />
 							<p class="description">Mínimo: 20.0 cm</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_default_weight">Peso (kg)</label></th>
+						<th scope="row"><label for="cepcerto_default_weight">Peso (kg)</label></th>
 						<td>
-							<input name="cepcer_default_weight" id="cepcer_default_weight" type="number" step="0.01" min="0.01" max="30" value="<?php echo esc_attr( $default_weight ); ?>" />
+							<input name="cepcerto_default_weight" id="cepcerto_default_weight" type="number" step="0.01" min="0.01" max="30" value="<?php echo esc_attr( $default_weight ); ?>" />
 							<p class="description">Mínimo: maior que 0 kg / Máximo: 30 kg</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="cepcer_min_order_value">Valor mínimo da encomenda (R$)</label></th>
+						<th scope="row"><label for="cepcerto_min_order_value">Valor mínimo da encomenda (R$)</label></th>
 						<td>
-							<input name="cepcer_min_order_value" id="cepcer_min_order_value" type="number" step="0.01" min="50" max="35000" value="<?php echo esc_attr( $min_order_value ); ?>" />
+							<input name="cepcerto_min_order_value" id="cepcerto_min_order_value" type="number" step="0.01" min="50" max="35000" value="<?php echo esc_attr( $min_order_value ); ?>" />
 							<p class="description">Valor mínimo para cotação (entre R$ 50,00 e R$ 35.000,00). Se o carrinho for menor, será usado este valor.</p>
 						</td>
 					</tr>
@@ -1019,18 +1019,18 @@ class CEPCER_Admin {
 						<th scope="row">Exibir calculadora em</th>
 						<td>
 							<?php
-							$display_locations = cepcer_get_option( 'cepcer_display_locations', array( 'product', 'checkout' ) );
+							$display_locations = cepcerto_get_option( 'cepcerto_display_locations', array( 'product', 'checkout' ) );
 							if ( ! is_array( $display_locations ) ) {
 								$display_locations = array( 'product', 'checkout' );
 							}
 							?>
-							<input type="hidden" name="cepcer_display_locations" value="" />
+							<input type="hidden" name="cepcerto_display_locations" value="" />
 							<label style="display:block; margin-bottom: 6px;">
-								<input type="checkbox" name="cepcer_display_locations[]" value="product" <?php checked( in_array( 'product', $display_locations, true ) ); ?> />
+								<input type="checkbox" name="cepcerto_display_locations[]" value="product" <?php checked( in_array( 'product', $display_locations, true ) ); ?> />
 								Página do produto
 							</label>
 							<label style="display:block; margin-bottom: 6px;">
-								<input type="hidden" name="cepcer_display_locations[]" value="checkout" />
+								<input type="hidden" name="cepcerto_display_locations[]" value="checkout" />
 								<input type="checkbox" value="checkout" checked="checked" disabled="disabled" />
 								Checkout / Carrinho <span class="description">(obrigatório)</span>
 							</label>
@@ -1063,8 +1063,8 @@ class CEPCER_Admin {
 						<th scope="row">Debug</th>
 						<td>
 							<label>
-								<input type="hidden" name="cepcer_debug" value="0" />
-								<input name="cepcer_debug" type="checkbox" value="1" <?php checked( $debug_on ); ?> />
+								<input type="hidden" name="cepcerto_debug" value="0" />
+								<input name="cepcerto_debug" type="checkbox" value="1" <?php checked( $debug_on ); ?> />
 								<?php echo $debug_on ? 'Desativar' : 'Ativar'; ?>
 							</label>
 						</td>
@@ -1080,9 +1080,9 @@ class CEPCER_Admin {
 
 	private function render_saldo_tab() {
 		$ajax_url         = admin_url( 'admin-ajax.php' );
-		$nonce_saldo      = wp_create_nonce( 'cepcer_consultar_saldo' );
-		$nonce_credito    = wp_create_nonce( 'cepcer_adicionar_credito' );
-		$nonce_financeiro = wp_create_nonce( 'cepcer_financeiro' );
+		$nonce_saldo      = wp_create_nonce( 'cepcerto_consultar_saldo' );
+		$nonce_credito    = wp_create_nonce( 'cepcerto_adicionar_credito' );
+		$nonce_financeiro = wp_create_nonce( 'cepcerto_financeiro' );
 		?>
 		<div id="cepcerto-saldo-notices"></div>
 
@@ -1092,9 +1092,9 @@ class CEPCER_Admin {
 			<table class="form-table" role="presentation">
 				<tbody>
 					<tr>
-						<th scope="row"><label for="cepcer_valor_credito">Valor (R$)</label></th>
+						<th scope="row"><label for="cepcerto_valor_credito">Valor (R$)</label></th>
 						<td>
-							<input type="number" id="cepcer_valor_credito" class="regular-text" step="0.01" min="1" placeholder="Ex: 100.00" />
+							<input type="number" id="cepcerto_valor_credito" class="regular-text" step="0.01" min="1" placeholder="Ex: 100.00" />
 						</td>
 					</tr>
 				</tbody>
@@ -1114,9 +1114,9 @@ class CEPCER_Admin {
 					<h3>QR Code PIX</h3>
 					<div id="cepcerto-qrcode-container" style="margin:15px 0;"></div>
 					<div style="margin-top:10px;">
-						<label for="cepcer_copia_cola"><strong>PIX Copia e Cola:</strong></label>
+						<label for="cepcerto_copia_cola"><strong>PIX Copia e Cola:</strong></label>
 						<div style="display:flex;gap:8px;margin-top:6px;max-width:600px;margin-left:auto;margin-right:auto;">
-							<input type="text" id="cepcer_copia_cola" class="regular-text" style="flex:1;" readonly />
+							<input type="text" id="cepcerto_copia_cola" class="regular-text" style="flex:1;" readonly />
 							<button type="button" class="button" id="cepcerto-btn-copiar">Copiar</button>
 						</div>
 					</div>
@@ -1137,8 +1137,8 @@ class CEPCER_Admin {
 	}
 
 	private function render_logs_tab() {
-		$file         = class_exists( 'CEPCER_Logger' ) ? CEPCER_Logger::get_latest_log_file() : false;
-		$download_url = wp_nonce_url( admin_url( 'admin-post.php?action=cepcer_download_log' ), 'cepcer_download_log' );
+		$file         = class_exists( 'CEPCERTO_Logger' ) ? CEPCERTO_Logger::get_latest_log_file() : false;
+		$download_url = wp_nonce_url( admin_url( 'admin-post.php?action=cepcerto_download_log' ), 'cepcerto_download_log' );
 
 		$minutes = isset( $_GET['minutes'] ) ? absint( wp_unslash( $_GET['minutes'] ) ) : 10; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( $minutes <= 0 ) {
@@ -1208,8 +1208,8 @@ class CEPCER_Admin {
 			<input type="hidden" name="page" value="cepcerto" />
 			<input type="hidden" name="tab" value="logs" />
 			<input type="hidden" name="view" value="<?php echo esc_attr( $view ); ?>" />
-			<label for="cepcer_logs_minutes"><strong>Exibir últimos</strong></label>
-			<input type="number" min="1" max="10080" step="1" id="cepcer_logs_minutes" name="minutes" value="<?php echo esc_attr( (string) $minutes ); ?>" style="width: 90px;" />
+			<label for="cepcerto_logs_minutes"><strong>Exibir últimos</strong></label>
+			<input type="number" min="1" max="10080" step="1" id="cepcerto_logs_minutes" name="minutes" value="<?php echo esc_attr( (string) $minutes ); ?>" style="width: 90px;" />
 			<span>minutos</span>
 			<input type="submit" class="button" value="Aplicar" />
 			<span style="margin-left:12px;">
@@ -1268,16 +1268,16 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_consultar_saldo' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_consultar_saldo' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 		if ( empty( $token ) ) {
 			wp_send_json_error( array( 'message' => 'Token de cliente não configurado.' ), 400 );
 		}
 
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->saldo( $token );
 
 		if ( is_wp_error( $result ) ) {
@@ -1293,11 +1293,11 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_financeiro' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_financeiro' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 		if ( empty( $token ) ) {
 			wp_send_json_error( array( 'message' => 'Token de cliente não configurado.' ), 400 );
 		}
@@ -1309,7 +1309,7 @@ class CEPCER_Admin {
 		if ( null !== $offset && 0 > $offset ) {
 			$offset = null; }
 
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->financeiro( $token, $limit, $offset );
 
 		if ( is_wp_error( $result ) ) {
@@ -1325,7 +1325,7 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_adicionar_credito' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_adicionar_credito' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
@@ -1334,12 +1334,12 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => 'Informe o valor do crédito.' ), 400 );
 		}
 
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 		if ( empty( $token ) ) {
 			wp_send_json_error( array( 'message' => 'Token de cliente não configurado.' ), 400 );
 		}
 
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->credito( $token, $valor );
 
 		if ( is_wp_error( $result ) ) {
@@ -1355,7 +1355,7 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_etiqueta' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_etiqueta' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
@@ -1369,19 +1369,19 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => 'Pedido não encontrado.' ), 404 );
 		}
 
-		$existing = $this->get_order_meta_with_legacy( $order, '_cepcer_etiqueta' );
+		$existing = $this->get_order_meta_with_legacy( $order, '_cepcerto_etiqueta' );
 		if ( is_array( $existing ) && ! empty( $existing['codigoObjeto'] ) ) {
 			wp_send_json_error( array( 'message' => 'Etiqueta já gerada para este pedido.' ), 400 );
 		}
 
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 		if ( empty( $token ) ) {
 			wp_send_json_error( array( 'message' => 'Token de cliente não configurado.' ), 400 );
 		}
 
 		$tipo_entrega = $this->resolve_tipo_entrega( $order );
 
-		$cep_remetente     = preg_replace( '/\D+/', '', (string) cepcer_get_option( 'cepcer_origin_cep', '' ) );
+		$cep_remetente     = preg_replace( '/\D+/', '', (string) cepcerto_get_option( 'cepcerto_origin_cep', '' ) );
 		$shipping_postcode = (string) $order->get_shipping_postcode();
 		$billing_postcode  = (string) $order->get_billing_postcode();
 		$cep_destinatario  = preg_replace( '/\D+/', '', '' !== $shipping_postcode ? $shipping_postcode : $billing_postcode );
@@ -1390,10 +1390,10 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => 'CEP de origem ou destino não configurado.' ), 400 );
 		}
 
-		$default_weight = $this->etiqueta_to_float( cepcer_get_option( 'cepcer_default_weight', 1 ) );
-		$default_width  = $this->etiqueta_to_float( cepcer_get_option( 'cepcer_default_width', 15.2 ) );
-		$default_height = $this->etiqueta_to_float( cepcer_get_option( 'cepcer_default_height', 10.5 ) );
-		$default_length = $this->etiqueta_to_float( cepcer_get_option( 'cepcer_default_length', 20.0 ) );
+		$default_weight = $this->etiqueta_to_float( cepcerto_get_option( 'cepcerto_default_weight', 1 ) );
+		$default_width  = $this->etiqueta_to_float( cepcerto_get_option( 'cepcerto_default_width', 15.2 ) );
+		$default_height = $this->etiqueta_to_float( cepcerto_get_option( 'cepcerto_default_height', 10.5 ) );
+		$default_length = $this->etiqueta_to_float( cepcerto_get_option( 'cepcerto_default_length', 20.0 ) );
 
 		$total_weight = $this->etiqueta_convert_weight_to_kg( $default_weight );
 		$produtos     = array();
@@ -1419,7 +1419,7 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => 'Dimensões ou peso padrão inválidos. Verifique as configurações.' ), 400 );
 		}
 
-		$min_order_value = (float) cepcer_get_option( 'cepcer_min_order_value', 50 );
+		$min_order_value = (float) cepcerto_get_option( 'cepcerto_min_order_value', 50 );
 		$order_total     = (float) $order->get_total();
 		$valor_encomenda = max( $min_order_value, min( 35000, $order_total ) );
 
@@ -1484,14 +1484,14 @@ class CEPCER_Admin {
 			'largura'                      => $this->etiqueta_format_number( $final_width ),
 			'comprimento'                  => $this->etiqueta_format_number( $final_length ),
 			'valor_encomenda'              => (string) $valor_encomenda,
-			'nome_remetente'               => (string) cepcer_get_option( 'cepcer_nome_remetente', '' ),
-			'cpf_cnpj_remetente'           => preg_replace( '/\D+/', '', (string) cepcer_get_option( 'cepcer_cpf_cnpj_remetente', '' ) ),
-			'whatsapp_remetente'           => preg_replace( '/\D+/', '', (string) cepcer_get_option( 'cepcer_whatsapp_remetente', '' ) ),
-			'email_remetente'              => (string) cepcer_get_option( 'cepcer_email_remetente', '' ),
-			'logradouro_remetente'         => (string) cepcer_get_option( 'cepcer_logradouro_remetente', '' ),
-			'bairro_remetente'             => (string) cepcer_get_option( 'cepcer_bairro_remetente', '' ),
-			'numero_endereco_remetente'    => (string) cepcer_get_option( 'cepcer_numero_endereco_remetente', '' ),
-			'complemento_remetente'        => (string) cepcer_get_option( 'cepcer_complemento_remetente', '' ),
+			'nome_remetente'               => (string) cepcerto_get_option( 'cepcerto_nome_remetente', '' ),
+			'cpf_cnpj_remetente'           => preg_replace( '/\D+/', '', (string) cepcerto_get_option( 'cepcerto_cpf_cnpj_remetente', '' ) ),
+			'whatsapp_remetente'           => preg_replace( '/\D+/', '', (string) cepcerto_get_option( 'cepcerto_whatsapp_remetente', '' ) ),
+			'email_remetente'              => (string) cepcerto_get_option( 'cepcerto_email_remetente', '' ),
+			'logradouro_remetente'         => (string) cepcerto_get_option( 'cepcerto_logradouro_remetente', '' ),
+			'bairro_remetente'             => (string) cepcerto_get_option( 'cepcerto_bairro_remetente', '' ),
+			'numero_endereco_remetente'    => (string) cepcerto_get_option( 'cepcerto_numero_endereco_remetente', '' ),
+			'complemento_remetente'        => (string) cepcerto_get_option( 'cepcerto_complemento_remetente', '' ),
 			'nome_destinatario'            => $nome_destinatario,
 			'cpf_cnpj_destinatario'        => $cpf_cnpj_dest,
 			'whatsapp_destinatario'        => $billing_phone,
@@ -1504,7 +1504,7 @@ class CEPCER_Admin {
 			'produtos'                     => $produtos,
 		);
 
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->postagem_frete( $payload );
 
 		if ( is_wp_error( $result ) ) {
@@ -1523,7 +1523,7 @@ class CEPCER_Admin {
 
 		$frete = isset( $result['frete'] ) && is_array( $result['frete'] ) ? $result['frete'] : array();
 
-		$order->update_meta_data( '_cepcer_etiqueta', $frete );
+		$order->update_meta_data( '_cepcerto_etiqueta', $frete );
 		$order->save();
 
 		wp_send_json_success(
@@ -1542,7 +1542,7 @@ class CEPCER_Admin {
 		}
 
 		$nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
-		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcer_etiqueta' ) ) {
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'cepcerto_etiqueta' ) ) {
 			wp_send_json_error( array( 'message' => 'Nonce inválido.' ), 400 );
 		}
 
@@ -1556,19 +1556,19 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => 'Pedido não encontrado.' ), 404 );
 		}
 
-		$etiqueta = $this->get_order_meta_with_legacy( $order, '_cepcer_etiqueta' );
+		$etiqueta = $this->get_order_meta_with_legacy( $order, '_cepcerto_etiqueta' );
 		if ( ! is_array( $etiqueta ) || empty( $etiqueta['codigoObjeto'] ) ) {
 			wp_send_json_error( array( 'message' => 'Nenhuma etiqueta encontrada para este pedido.' ), 400 );
 		}
 
-		$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 		if ( empty( $token ) ) {
 			wp_send_json_error( array( 'message' => 'Token de cliente não configurado.' ), 400 );
 		}
 
 		$cod_objeto = (string) $etiqueta['codigoObjeto'];
 
-		$api    = new CEPCER_Api();
+		$api    = new CEPCERTO_Api();
 		$result = $api->cancela_postagem( $token, $cod_objeto );
 
 		if ( is_wp_error( $result ) ) {
@@ -1585,7 +1585,7 @@ class CEPCER_Admin {
 			wp_send_json_error( array( 'message' => $msg ), 400 );
 		}
 
-		$order->delete_meta_data( '_cepcer_etiqueta' );
+		$order->delete_meta_data( '_cepcerto_etiqueta' );
 		$order->delete_meta_data( '_cepcerto_etiqueta' );
 		$order->save();
 
@@ -1602,8 +1602,8 @@ class CEPCER_Admin {
 		$shipping_methods = $order->get_shipping_methods();
 		foreach ( $shipping_methods as $method ) {
 			$method_id = (string) $method->get_method_id();
-			if ( 0 === strpos( $method_id, 'cepcer_' ) ) {
-				$tipo = str_replace( 'cepcer_', '', $method_id );
+			if ( 0 === strpos( $method_id, 'CEPCERTO_' ) ) {
+				$tipo = str_replace( 'CEPCERTO_', '', $method_id );
 				$map  = array(
 					'pac'            => 'pac',
 					'sedex'          => 'sedex',
@@ -1665,13 +1665,13 @@ class CEPCER_Admin {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
 			wp_die( 'Sem permissão.' );
 		}
-		check_admin_referer( 'cepcer_download_log' );
+		check_admin_referer( 'cepcerto_download_log' );
 
-		if ( ! class_exists( 'CEPCER_Logger' ) ) {
+		if ( ! class_exists( 'CEPCERTO_Logger' ) ) {
 			wp_die( 'Logger indisponível.' );
 		}
 
-		$file = CEPCER_Logger::get_latest_log_file();
+		$file = CEPCERTO_Logger::get_latest_log_file();
 		if ( ! $file || ! file_exists( $file ) ) {
 			wp_die( 'Arquivo de log não encontrado.' );
 		}

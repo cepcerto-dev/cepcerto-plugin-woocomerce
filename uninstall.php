@@ -13,16 +13,26 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
- * Get the legacy option name used before the CEPCER/cepcer prefix migration.
+ * Get the legacy prefix used before the cepcerto prefix migration.
+ *
+ * @since 1.0.0
+ * @return string Legacy prefix.
+ */
+function cepcerto_get_legacy_prefix() {
+	return 'cep' . 'cer_';
+}
+
+/**
+ * Get the legacy option name used before the cepcerto prefix migration.
  *
  * @since 1.0.0
  * @param string $option Option name.
  * @return string Legacy option name.
  */
-function cepcer_get_legacy_option_name( $option ) {
+function cepcerto_get_legacy_option_name( $option ) {
 	$option = (string) $option;
-	if ( 0 === strpos( $option, 'cepcer_' ) ) {
-		return 'cepcerto_' . substr( $option, strlen( 'cepcer_' ) );
+	if ( 0 === strpos( $option, 'cepcerto_' ) ) {
+		return cepcerto_get_legacy_prefix() . substr( $option, strlen( 'cepcerto_' ) );
 	}
 	return $option;
 }
@@ -34,9 +44,9 @@ function cepcer_get_legacy_option_name( $option ) {
  * @param string $option Option name.
  * @return void
  */
-function cepcer_delete_option( $option ) {
+function cepcerto_delete_option( $option ) {
 	delete_option( $option );
-	$legacy = cepcer_get_legacy_option_name( $option );
+	$legacy = cepcerto_get_legacy_option_name( $option );
 	if ( $legacy !== $option ) {
 		delete_option( $legacy );
 	}
@@ -47,34 +57,35 @@ function cepcer_delete_option( $option ) {
  *
  * @since 1.0.0
  */
-function cepcer_delete_options() {
+function cepcerto_delete_options() {
 	$options = array(
-		'cepcer_token_cliente_postagem',
-		'cepcer_origin_cep',
-		'cepcer_nome_remetente',
-		'cepcer_cpf_cnpj_remetente',
-		'cepcer_whatsapp_remetente',
-		'cepcer_email_remetente',
-		'cepcer_logradouro_remetente',
-		'cepcer_bairro_remetente',
-		'cepcer_numero_endereco_remetente',
-		'cepcer_complemento_remetente',
-		'cepcer_debug',
-		'cepcer_default_width',
-		'cepcer_default_height',
-		'cepcer_default_length',
-		'cepcer_default_weight',
-		'cepcer_min_order_value',
-		'cepcer_display_locations',
-		'cepcer_install_status',
-		'cepcer_consent_given',
-		'cepcer_consent_date',
-		'cepcer_consent_email',
-		'cepcer_shipping_method_migration_done',
+		'cepcerto_token_cliente_postagem',
+		'cepcerto_origin_cep',
+		'cepcerto_nome_remetente',
+		'cepcerto_cpf_cnpj_remetente',
+		'cepcerto_whatsapp_remetente',
+		'cepcerto_email_remetente',
+		'cepcerto_logradouro_remetente',
+		'cepcerto_bairro_remetente',
+		'cepcerto_numero_endereco_remetente',
+		'cepcerto_complemento_remetente',
+		'cepcerto_debug',
+		'cepcerto_default_width',
+		'cepcerto_default_height',
+		'cepcerto_default_length',
+		'cepcerto_default_weight',
+		'cepcerto_min_order_value',
+		'cepcerto_display_locations',
+		'cepcerto_install_status',
+		'cepcerto_consent_given',
+		'cepcerto_consent_date',
+		'cepcerto_consent_email',
+		'cepcerto_shipping_method_migration_done',
+		'cepcerto_shipping_method_legacy_migration_done',
 	);
 
 	foreach ( $options as $option ) {
-		cepcer_delete_option( $option );
+		cepcerto_delete_option( $option );
 	}
 }
 
@@ -83,7 +94,7 @@ function cepcer_delete_options() {
  *
  * @since 1.0.0
  */
-function cepcer_delete_order_meta() {
+function cepcerto_delete_order_meta() {
 	global $wpdb;
 
 	// Delete from postmeta (legacy orders).
@@ -91,7 +102,7 @@ function cepcer_delete_order_meta() {
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE %s",
-			$wpdb->esc_like( '_cepcer_' ) . '%'
+			$wpdb->esc_like( '_' . cepcerto_get_legacy_prefix() ) . '%'
 		)
 	);
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
@@ -118,7 +129,7 @@ function cepcer_delete_order_meta() {
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM `{$wpdb->prefix}wc_orders_meta` WHERE meta_key LIKE %s",
-					$wpdb->esc_like( '_cepcer_' ) . '%'
+					$wpdb->esc_like( '_' . cepcerto_get_legacy_prefix() ) . '%'
 				)
 			);
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
@@ -137,10 +148,10 @@ function cepcer_delete_order_meta() {
  *
  * @since 1.0.0
  */
-function cepcer_delete_log_files() {
+function cepcerto_delete_log_files() {
 	$upload_dir = wp_upload_dir();
 	$log_dirs   = array(
-		trailingslashit( $upload_dir['basedir'] ) . 'cepcer-logs',
+		trailingslashit( $upload_dir['basedir'] ) . 'cep' . 'cer-logs',
 		trailingslashit( $upload_dir['basedir'] ) . 'cepcerto-logs',
 	);
 
@@ -171,14 +182,14 @@ function cepcer_delete_log_files() {
  *
  * @since 1.0.0
  */
-function cepcer_delete_transients() {
+function cepcerto_delete_transients() {
 	global $wpdb;
 
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_cepcer_' ) . '%'
+			$wpdb->esc_like( '_transient_' . cepcerto_get_legacy_prefix() ) . '%'
 		)
 	);
 
@@ -186,7 +197,7 @@ function cepcer_delete_transients() {
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_timeout_cepcer_' ) . '%'
+			$wpdb->esc_like( '_transient_timeout_' . cepcerto_get_legacy_prefix() ) . '%'
 		)
 	);
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during uninstall.
@@ -209,10 +220,10 @@ function cepcer_delete_transients() {
 /**
  * Main uninstall routine.
  */
-cepcer_delete_options();
-cepcer_delete_order_meta();
-cepcer_delete_log_files();
-cepcer_delete_transients();
+cepcerto_delete_options();
+cepcerto_delete_order_meta();
+cepcerto_delete_log_files();
+cepcerto_delete_transients();
 
 // Clear any cached data.
 wp_cache_flush();

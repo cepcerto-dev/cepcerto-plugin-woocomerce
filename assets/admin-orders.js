@@ -101,7 +101,7 @@
 			var row = btn.closest('tr');
 			btn.disabled = true;
 			btn.textContent = 'Gerando...';
-			postAjax('cepcer_gerar_etiqueta', { order_id: orderId }).then(function(resp) {
+			postAjax('cepcerto_gerar_etiqueta', { order_id: orderId }).then(function(resp) {
 				if (resp && resp.success && resp.data && resp.data.frete) {
 					updateRowEtiqueta(row, resp.data.frete);
 					if (resp.data.reload_saldo && typeof window.loadSaldo === 'function') {
@@ -132,7 +132,7 @@
 			var row = btn.closest('tr');
 			btn.disabled = true;
 			btn.textContent = 'Cancelando...';
-			postAjax('cepcer_cancelar_etiqueta', { order_id: orderId }).then(function(resp) {
+			postAjax('cepcerto_cancelar_etiqueta', { order_id: orderId }).then(function(resp) {
 				if (resp && resp.success) {
 					clearRowEtiqueta(row);
 					if (resp.data.reload_saldo && typeof window.loadSaldo === 'function') {

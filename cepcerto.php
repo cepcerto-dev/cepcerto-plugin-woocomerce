@@ -27,57 +27,67 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-if ( ! defined( 'CEPCER_VERSION' ) ) {
-	define( 'CEPCER_VERSION', '1.0.1' );
+if ( ! defined( 'CEPCERTO_VERSION' ) ) {
+	define( 'CEPCERTO_VERSION', '1.0.1' );
 }
 
-if ( ! defined( 'CEPCER_PLUGIN_FILE' ) ) {
-	define( 'CEPCER_PLUGIN_FILE', __FILE__ );
+if ( ! defined( 'CEPCERTO_PLUGIN_FILE' ) ) {
+	define( 'CEPCERTO_PLUGIN_FILE', __FILE__ );
 }
 
-if ( ! defined( 'CEPCER_PLUGIN_DIR' ) ) {
-	define( 'CEPCER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+if ( ! defined( 'CEPCERTO_PLUGIN_DIR' ) ) {
+	define( 'CEPCERTO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 }
 
-if ( ! defined( 'CEPCER_PLUGIN_URL' ) ) {
-	define( 'CEPCER_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+if ( ! defined( 'CEPCERTO_PLUGIN_URL' ) ) {
+	define( 'CEPCERTO_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 }
 
-if ( ! defined( 'CEPCER_PLUGIN_BASENAME' ) ) {
-	define( 'CEPCER_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+if ( ! defined( 'CEPCERTO_PLUGIN_BASENAME' ) ) {
+	define( 'CEPCERTO_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 }
 
 /**
- * Get the legacy option name used before the CEPCER/cepcer prefix migration.
+ * Get the legacy prefix used before the cepcerto prefix migration.
+ *
+ * @since 1.0.0
+ * @return string Legacy prefix.
+ */
+function cepcerto_get_legacy_prefix() {
+	return 'cep' . 'cer_';
+}
+
+/**
+ * Get the legacy option name used before the cepcerto prefix migration.
  *
  * @since 1.0.0
  * @param string $option Option name.
  * @return string Legacy option name.
  */
-function cepcer_get_legacy_option_name( $option ) {
+function cepcerto_get_legacy_option_name( $option ) {
 	$option = (string) $option;
-	if ( 0 === strpos( $option, 'cepcer_' ) ) {
-		return 'cepcerto_' . substr( $option, strlen( 'cepcer_' ) );
+	if ( 0 === strpos( $option, 'cepcerto_' ) ) {
+		return cepcerto_get_legacy_prefix() . substr( $option, strlen( 'cepcerto_' ) );
 	}
 	return $option;
 }
 
 /**
- * Get a plugin option with fallback to the legacy cepcerto_ key.
+ * Get a plugin option with fallback to the legacy key.
  *
  * @since 1.0.0
  * @param string $option  Option name.
  * @param mixed  $default Default value.
  * @return mixed
  */
-function cepcer_get_option( $option, $default = false ) {
-	$marker = '__cepcer_missing_option__';
+function cepcerto_get_option( $option, $default = false ) {
+	$marker = '__cepcerto_missing_option__';
 	$value  = get_option( $option, $marker );
 	if ( $marker !== $value ) {
 		return $value;
 	}
 
-	$legacy = cepcer_get_legacy_option_name( $option );
+	$legacy = cepcerto_get_legacy_option_name( $option );
 	if ( $legacy !== $option ) {
 		return get_option( $legacy, $default );
 	}
@@ -86,7 +96,7 @@ function cepcer_get_option( $option, $default = false ) {
 }
 
 /**
- * Update a plugin option using the new cepcer_ key.
+ * Update a plugin option using the new cepcerto_ key.
  *
  * @since 1.0.0
  * @param string    $option   Option name.
@@ -94,7 +104,7 @@ function cepcer_get_option( $option, $default = false ) {
  * @param bool|null $autoload Whether to autoload the option.
  * @return bool
  */
-function cepcer_update_option( $option, $value, $autoload = null ) {
+function cepcerto_update_option( $option, $value, $autoload = null ) {
 	if ( null === $autoload ) {
 		return update_option( $option, $value );
 	}
@@ -102,89 +112,90 @@ function cepcer_update_option( $option, $value, $autoload = null ) {
 }
 
 /**
- * Delete a plugin option and its legacy cepcerto_ equivalent.
+ * Delete a plugin option and its legacy equivalent.
  *
  * @since 1.0.0
  * @param string $option Option name.
  * @return void
  */
-function cepcer_delete_option( $option ) {
+function cepcerto_delete_option( $option ) {
 	delete_option( $option );
-	$legacy = cepcer_get_legacy_option_name( $option );
+	$legacy = cepcerto_get_legacy_option_name( $option );
 	if ( $legacy !== $option ) {
 		delete_option( $legacy );
 	}
 }
 
 /**
- * Copy legacy cepcerto_ options into their new cepcer_ names.
+ * Copy legacy options into their new cepcerto_ names.
  *
  * @since 1.0.0
  * @return void
  */
-function cepcer_migrate_legacy_options() {
+function cepcerto_migrate_legacy_options() {
 	$options = array(
-		'cepcer_token_cliente_postagem',
-		'cepcer_origin_cep',
-		'cepcer_nome_remetente',
-		'cepcer_cpf_cnpj_remetente',
-		'cepcer_whatsapp_remetente',
-		'cepcer_email_remetente',
-		'cepcer_logradouro_remetente',
-		'cepcer_bairro_remetente',
-		'cepcer_numero_endereco_remetente',
-		'cepcer_complemento_remetente',
-		'cepcer_debug',
-		'cepcer_default_width',
-		'cepcer_default_height',
-		'cepcer_default_length',
-		'cepcer_default_weight',
-		'cepcer_min_order_value',
-		'cepcer_display_locations',
-		'cepcer_install_status',
-		'cepcer_consent_given',
-		'cepcer_consent_date',
-		'cepcer_consent_email',
-		'cepcer_shipping_method_migration_done',
+		'cepcerto_token_cliente_postagem',
+		'cepcerto_origin_cep',
+		'cepcerto_nome_remetente',
+		'cepcerto_cpf_cnpj_remetente',
+		'cepcerto_whatsapp_remetente',
+		'cepcerto_email_remetente',
+		'cepcerto_logradouro_remetente',
+		'cepcerto_bairro_remetente',
+		'cepcerto_numero_endereco_remetente',
+		'cepcerto_complemento_remetente',
+		'cepcerto_debug',
+		'cepcerto_default_width',
+		'cepcerto_default_height',
+		'cepcerto_default_length',
+		'cepcerto_default_weight',
+		'cepcerto_min_order_value',
+		'cepcerto_display_locations',
+		'cepcerto_install_status',
+		'cepcerto_consent_given',
+		'cepcerto_consent_date',
+		'cepcerto_consent_email',
+		'cepcerto_shipping_method_migration_done',
+		'cepcerto_shipping_method_legacy_migration_done',
 	);
 
-	$marker = '__cepcer_missing_option__';
+	$marker = '__cepcerto_missing_option__';
 	foreach ( $options as $option ) {
 		if ( $marker !== get_option( $option, $marker ) ) {
 			continue;
 		}
 
-		$legacy = cepcer_get_legacy_option_name( $option );
+		$legacy = cepcerto_get_legacy_option_name( $option );
 		$value  = get_option( $legacy, $marker );
 		if ( $marker !== $value ) {
 			update_option( $option, $value );
 		}
 	}
 }
-add_action( 'plugins_loaded', 'cepcer_migrate_legacy_options', 1 );
+add_action( 'plugins_loaded', 'cepcerto_migrate_legacy_options', 1 );
 /**
  * Create default shipping box options when they do not exist yet.
  *
  * @since 1.0.0
  * @return void
  */
-function cepcer_ensure_default_package_options() {
+function cepcerto_ensure_default_package_options() {
 
 	$defaults = array(
-		'cepcer_default_width'  => 15.2,
-		'cepcer_default_height' => 10.5,
-		'cepcer_default_length' => 20.0,
-		'cepcer_default_weight' => 1,
+		'cepcerto_default_width'  => 15.2,
+		'cepcerto_default_height' => 10.5,
+		'cepcerto_default_length' => 20.0,
+		'cepcerto_default_weight' => 1,
 	);
 
-	$marker = '__cepcer_missing_option__';
+	$marker = '__cepcerto_missing_option__';
 	foreach ( $defaults as $option => $value ) {
 		if ( $marker === get_option( $option, $marker ) ) {
 			add_option( $option, $value );
 		}
 	}
 }
-add_action( 'plugins_loaded', 'cepcer_ensure_default_package_options', 2 );
+add_action( 'plugins_loaded', 'cepcerto_ensure_default_package_options', 2 );
 
 /**
  * Migrate existing WooCommerce shipping-zone rows and instance settings.
@@ -192,18 +203,20 @@ add_action( 'plugins_loaded', 'cepcer_ensure_default_package_options', 2 );
  * @since 1.0.0
  * @return void
  */
-function cepcer_migrate_legacy_shipping_methods() {
-	if ( cepcer_get_option( 'cepcer_shipping_method_migration_done', false ) ) {
+function cepcerto_migrate_legacy_shipping_methods() {
+	$marker = '__cepcerto_missing_option__';
+	if ( $marker !== get_option( 'cepcerto_shipping_method_legacy_migration_done', $marker ) ) {
 		return;
 	}
 
 	global $wpdb;
 
-	$method_map = array(
-		'cepcerto_pac'            => 'cepcer_pac',
-		'cepcerto_sedex'          => 'cepcer_sedex',
-		'cepcerto_jadlog_package' => 'cepcer_jadlog_package',
-		'cepcerto_jadlog_dotcom'  => 'cepcer_jadlog_dotcom',
+	$legacy_prefix = cepcerto_get_legacy_prefix();
+	$method_map    = array(
+		$legacy_prefix . 'pac'            => 'cepcerto_pac',
+		$legacy_prefix . 'sedex'          => 'cepcerto_sedex',
+		$legacy_prefix . 'jadlog_package' => 'cepcerto_jadlog_package',
+		$legacy_prefix . 'jadlog_dotcom'  => 'cepcerto_jadlog_dotcom',
 	);
 
 	$table = $wpdb->prefix . 'woocommerce_shipping_zone_methods';
@@ -246,9 +259,9 @@ function cepcer_migrate_legacy_shipping_methods() {
 		}
 	}
 
-	cepcer_update_option( 'cepcer_shipping_method_migration_done', true );
+	cepcerto_update_option( 'cepcerto_shipping_method_legacy_migration_done', true );
 }
-add_action( 'plugins_loaded', 'cepcer_migrate_legacy_shipping_methods', 3 );
+add_action( 'plugins_loaded', 'cepcerto_migrate_legacy_shipping_methods', 3 );
 /**
  * Plugin activation hook.
  *
@@ -258,10 +271,10 @@ add_action( 'plugins_loaded', 'cepcer_migrate_legacy_shipping_methods', 3 );
  * @since 1.0.0
  * @return void
  */
-function cepcer_activate_plugin() {
+function cepcerto_activate_plugin() {
 
-	cepcer_migrate_legacy_options();
-	cepcer_ensure_default_package_options();
+	cepcerto_migrate_legacy_options();
+	cepcerto_ensure_default_package_options();
 
 	// Check if WooCommerce is active.
 	if ( ! function_exists( 'is_plugin_active' ) ) {
@@ -273,13 +286,13 @@ function cepcer_activate_plugin() {
 	}
 
 	// Set installation status to pending consent.
-	$install_status = cepcer_get_option( 'cepcer_install_status', '' );
+	$install_status = cepcerto_get_option( 'cepcerto_install_status', '' );
 	if ( empty( $install_status ) ) {
-		cepcer_update_option( 'cepcer_install_status', 'pending_consent' );
+		cepcerto_update_option( 'cepcerto_install_status', 'pending_consent' );
 	}
 }
 
-register_activation_hook( CEPCER_PLUGIN_FILE, 'cepcer_activate_plugin' );
+register_activation_hook( CEPCERTO_PLUGIN_FILE, 'cepcerto_activate_plugin' );
 
 /**
  * Plugin deactivation hook.
@@ -289,35 +302,36 @@ register_activation_hook( CEPCER_PLUGIN_FILE, 'cepcer_activate_plugin' );
  * @since 1.0.0
  * @return void
  */
-function cepcer_deactivate_plugin() {
+function cepcerto_deactivate_plugin() {
 	// Delete all plugin options.
 	$options = array(
-		'cepcer_token_cliente_postagem',
-		'cepcer_origin_cep',
-		'cepcer_nome_remetente',
-		'cepcer_cpf_cnpj_remetente',
-		'cepcer_whatsapp_remetente',
-		'cepcer_email_remetente',
-		'cepcer_logradouro_remetente',
-		'cepcer_bairro_remetente',
-		'cepcer_numero_endereco_remetente',
-		'cepcer_complemento_remetente',
-		'cepcer_debug',
-		'cepcer_default_width',
-		'cepcer_default_height',
-		'cepcer_default_length',
-		'cepcer_default_weight',
-		'cepcer_min_order_value',
-		'cepcer_display_locations',
-		'cepcer_install_status',
-		'cepcer_consent_given',
-		'cepcer_consent_date',
-		'cepcer_consent_email',
-		'cepcer_shipping_method_migration_done',
+		'cepcerto_token_cliente_postagem',
+		'cepcerto_origin_cep',
+		'cepcerto_nome_remetente',
+		'cepcerto_cpf_cnpj_remetente',
+		'cepcerto_whatsapp_remetente',
+		'cepcerto_email_remetente',
+		'cepcerto_logradouro_remetente',
+		'cepcerto_bairro_remetente',
+		'cepcerto_numero_endereco_remetente',
+		'cepcerto_complemento_remetente',
+		'cepcerto_debug',
+		'cepcerto_default_width',
+		'cepcerto_default_height',
+		'cepcerto_default_length',
+		'cepcerto_default_weight',
+		'cepcerto_min_order_value',
+		'cepcerto_display_locations',
+		'cepcerto_install_status',
+		'cepcerto_consent_given',
+		'cepcerto_consent_date',
+		'cepcerto_consent_email',
+		'cepcerto_shipping_method_migration_done',
+		'cepcerto_shipping_method_legacy_migration_done',
 	);
 
 	foreach ( $options as $option ) {
-		cepcer_delete_option( $option );
+		cepcerto_delete_option( $option );
 	}
 
 	// Delete transients.
@@ -326,19 +340,33 @@ function cepcer_deactivate_plugin() {
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_cepcer_' ) . '%'
+			$wpdb->esc_like( '_transient_cepcerto_' ) . '%'
 		)
 	);
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_timeout_cepcer_' ) . '%'
+			$wpdb->esc_like( '_transient_timeout_cepcerto_' ) . '%'
+		)
+	);
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+			$wpdb->esc_like( '_transient_' . cepcerto_get_legacy_prefix() ) . '%'
+		)
+	);
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
+			$wpdb->esc_like( '_transient_timeout_' . cepcerto_get_legacy_prefix() ) . '%'
 		)
 	);
 }
 
-register_deactivation_hook( CEPCER_PLUGIN_FILE, 'cepcer_deactivate_plugin' );
+register_deactivation_hook( CEPCERTO_PLUGIN_FILE, 'cepcerto_deactivate_plugin' );
 
 /**
  * Process consent form submission and register installation.
@@ -346,15 +374,15 @@ register_deactivation_hook( CEPCER_PLUGIN_FILE, 'cepcer_deactivate_plugin' );
  * @since 1.0.0
  * @return void
  */
-function cepcer_process_consent() {
-	if ( ! isset( $_POST['cepcer_consent_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cepcer_consent_nonce'] ) ), 'cepcer_consent_action' ) ) {
+function cepcerto_process_consent() {
+	if ( ! isset( $_POST['cepcerto_consent_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['cepcerto_consent_nonce'] ) ), 'cepcerto_consent_action' ) ) {
 		return;
 	}
 
-	if ( ! isset( $_POST['cepcer_consent'] ) || 'yes' !== sanitize_text_field( wp_unslash( $_POST['cepcer_consent'] ) ) ) {
+	if ( ! isset( $_POST['cepcerto_consent'] ) || 'yes' !== sanitize_text_field( wp_unslash( $_POST['cepcerto_consent'] ) ) ) {
 		add_settings_error(
-			'cepcer_setup',
-			'cepcer_consent_required',
+			'cepcerto_setup',
+			'cepcerto_consent_required',
 			__( 'Você precisa concordar com os termos de uso para ativar o plugin.', 'cepcerto' ),
 			'error'
 		);
@@ -366,7 +394,7 @@ function cepcer_process_consent() {
 	}
 
 	// Load required classes.
-	require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-api.php';
+	require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-api.php';
 
 	// Get site information.
 	$email = sanitize_email( get_option( 'admin_email', '' ) );
@@ -385,33 +413,33 @@ function cepcer_process_consent() {
 	}
 
 	// Register installation with CepCerto API.
-	$api    = new CEPCER_Api();
+	$api    = new CEPCERTO_Api();
 	$result = $api->registrar_instalacao( $email, $nome );
 
 	if ( is_wp_error( $result ) ) {
 		add_settings_error(
-			'cepcer_setup',
-			'cepcer_api_error',
+			'cepcerto_setup',
+			'cepcerto_api_error',
 			$result->get_error_message(),
 			'error'
 		);
-		if ( class_exists( 'CEPCER_Logger' ) ) {
-			CEPCER_Logger::log( 'error', 'Falha ao registrar instalação', array( 'error' => $result->get_error_message() ) );
+		if ( class_exists( 'CEPCERTO_Logger' ) ) {
+			CEPCERTO_Logger::log( 'error', 'Falha ao registrar instalação', array( 'error' => $result->get_error_message() ) );
 		}
 		return;
 	}
 
 	// Mark as activated.
-	cepcer_update_option( 'cepcer_install_status', 'activated' );
-	cepcer_update_option( 'cepcer_consent_given', true );
-	cepcer_update_option( 'cepcer_consent_date', current_time( 'mysql' ) );
-	cepcer_update_option( 'cepcer_consent_email', $email );
+	cepcerto_update_option( 'cepcerto_install_status', 'activated' );
+	cepcerto_update_option( 'cepcerto_consent_given', true );
+	cepcerto_update_option( 'cepcerto_consent_date', current_time( 'mysql' ) );
+	cepcerto_update_option( 'cepcerto_consent_email', $email );
 
 	// Redirect to reload the page and unlock all features.
 	wp_safe_redirect( admin_url( 'admin.php?page=cepcerto&cc_activated=1' ) );
 	exit;
 }
-add_action( 'admin_init', 'cepcer_process_consent' );
+add_action( 'admin_init', 'cepcerto_process_consent' );
 
 /**
  * Check if plugin has consent to operate.
@@ -419,8 +447,8 @@ add_action( 'admin_init', 'cepcer_process_consent' );
  * @since 1.0.0
  * @return bool
  */
-function cepcer_has_consent() {
-	return 'activated' === cepcer_get_option( 'cepcer_install_status', '' ) && cepcer_get_option( 'cepcer_consent_given', false );
+function cepcerto_has_consent() {
+	return 'activated' === cepcerto_get_option( 'cepcerto_install_status', '' ) && cepcerto_get_option( 'cepcerto_consent_given', false );
 }
 
 /**
@@ -429,7 +457,7 @@ function cepcer_has_consent() {
  * @since 1.0.0
  * @return void
  */
-function cepcer_activation_success_notice() {
+function cepcerto_activation_success_notice() {
 	$activated = isset( $_GET['cc_activated'] ) ? sanitize_key( wp_unslash( $_GET['cc_activated'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	$page      = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( '1' === $activated && 'cepcerto' === $page ) {
@@ -440,20 +468,20 @@ function cepcer_activation_success_notice() {
 		<?php
 	}
 }
-add_action( 'admin_notices', 'cepcer_activation_success_notice' );
+add_action( 'admin_notices', 'cepcerto_activation_success_notice' );
 
 /**
  * Main CepCerto Plugin Class.
  *
  * @since 1.0.0
  */
-final class CEPCER_Plugin {
+final class CEPCERTO_Plugin {
 
 	/**
 	 * Single instance of the class.
 	 *
 	 * @since 1.0.0
-	 * @var CEPCER_Plugin|null
+	 * @var CEPCERTO_Plugin|null
 	 */
 	private static $instance = null;
 
@@ -461,7 +489,7 @@ final class CEPCER_Plugin {
 	 * Get the singleton instance.
 	 *
 	 * @since 1.0.0
-	 * @return CEPCER_Plugin
+	 * @return CEPCERTO_Plugin
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -501,12 +529,12 @@ final class CEPCER_Plugin {
 	public function init() {
 		// Check if WooCommerce is active.
 		if ( ! class_exists( 'WooCommerce' ) ) {
-			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+			add_action( 'admin_notices', array( $this, 'cepcerto_dependency_missing_notice' ) );
 			return;
 		}
 
 		// Check for consent before loading full functionality.
-		$has_consent = cepcer_has_consent();
+		$has_consent = cepcerto_has_consent();
 
 		// Load plugin classes.
 		$this->load_classes();
@@ -514,7 +542,7 @@ final class CEPCER_Plugin {
 		// Initialize admin features.
 		if ( is_admin() ) {
 			if ( $has_consent ) {
-				( new CEPCER_Admin() )->init();
+				( new CEPCERTO_Admin() )->init();
 			} else {
 				// Show limited admin with setup page.
 				add_action( 'admin_menu', array( $this, 'register_menu_with_setup' ) );
@@ -525,7 +553,7 @@ final class CEPCER_Plugin {
 		// Only enable frontend features if consent given.
 		if ( $has_consent ) {
 			// Get display locations.
-			$display_locations = cepcer_get_option( 'cepcer_display_locations', array( 'product', 'checkout' ) );
+			$display_locations = cepcerto_get_option( 'cepcerto_display_locations', array( 'product', 'checkout' ) );
 			if ( ! is_array( $display_locations ) ) {
 				$display_locations = array( 'product', 'checkout' );
 			}
@@ -533,7 +561,7 @@ final class CEPCER_Plugin {
 			// Initialize frontend calculator.
 			if ( in_array( 'product', $display_locations, true ) ) {
 				if ( ! is_admin() || wp_doing_ajax() ) {
-					( new CEPCER_Frontend() )->init();
+					( new CEPCERTO_Frontend() )->init();
 				}
 			}
 
@@ -576,7 +604,7 @@ final class CEPCER_Plugin {
 		$email = sanitize_email( get_option( 'admin_email', '' ) );
 		$nome  = sanitize_text_field( get_option( 'blogname', '' ) );
 
-		settings_errors( 'cepcer_setup' );
+		settings_errors( 'cepcerto_setup' );
 		?>
 		<div class="wrap">
 			<div style="max-width: 600px; margin-top: 30px;">
@@ -613,11 +641,11 @@ final class CEPCER_Plugin {
 					<hr style="margin: 20px 0; border: none; border-top: 1px solid #c3c4c7;">
 
 					<form method="post" action="<?php echo esc_url( admin_url( 'admin.php?page=cepcerto' ) ); ?>">
-						<?php wp_nonce_field( 'cepcer_consent_action', 'cepcer_consent_nonce' ); ?>
+						<?php wp_nonce_field( 'cepcerto_consent_action', 'cepcerto_consent_nonce' ); ?>
 
 						<div style="margin: 20px 0;">
 							<label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-								<input type="checkbox" name="cepcer_consent" value="yes" style="margin-top: 2px;" required />
+								<input type="checkbox" name="cepcerto_consent" value="yes" style="margin-top: 2px;" required />
 								<span style="font-size: 14px; line-height: 1.5;">
 									<?php
 									echo wp_kses(
@@ -686,15 +714,15 @@ final class CEPCER_Plugin {
 	 * @return void
 	 */
 	private function load_classes() {
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-api.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-logger.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-admin.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-frontend.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-shipping.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-shipping-pac.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-shipping-sedex.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-shipping-jadlog-package.php';
-		require_once CEPCER_PLUGIN_DIR . 'includes/class-cepcer-shipping-jadlog-dotcom.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-api.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-logger.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-admin.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-frontend.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-shipping.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-shipping-pac.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-shipping-sedex.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-shipping-jadlog-package.php';
+		require_once CEPCERTO_PLUGIN_DIR . 'includes/class-cepcerto-shipping-jadlog-dotcom.php';
 	}
 
 	/**
@@ -703,7 +731,7 @@ final class CEPCER_Plugin {
 	 * @since 1.0.0
 	 * @return void
 	 */
-	public function woocommerce_missing_notice() {
+	public function cepcerto_dependency_missing_notice() {
 		?>
 		<div class="notice notice-error">
 			<p>
@@ -729,10 +757,10 @@ final class CEPCER_Plugin {
 	 * @return array Modified shipping methods.
 	 */
 	public function register_shipping_methods( $methods ) {
-		$methods['cepcer_pac']            = 'CEPCER_Shipping_Pac';
-		$methods['cepcer_sedex']          = 'CEPCER_Shipping_Sedex';
-		$methods['cepcer_jadlog_package'] = 'CEPCER_Shipping_Jadlog_Package';
-		$methods['cepcer_jadlog_dotcom']  = 'CEPCER_Shipping_Jadlog_Dotcom';
+		$methods['cepcerto_pac']            = 'CEPCERTO_Shipping_Pac';
+		$methods['cepcerto_sedex']          = 'CEPCERTO_Shipping_Sedex';
+		$methods['cepcerto_jadlog_package'] = 'CEPCERTO_Shipping_Jadlog_Package';
+		$methods['cepcerto_jadlog_dotcom']  = 'CEPCERTO_Shipping_Jadlog_Dotcom';
 		return $methods;
 	}
 
@@ -765,17 +793,17 @@ final class CEPCER_Plugin {
 }
 
 /**
- * Get the main instance of CEPCER_Plugin.
+ * Get the main instance of CEPCERTO_Plugin.
  *
  * @since 1.0.0
- * @return CEPCER_Plugin
+ * @return CEPCERTO_Plugin
  */
-function cepcer() {
-	return CEPCER_Plugin::instance();
+function cepcerto() {
+	return CEPCERTO_Plugin::instance();
 }
 
 // Initialize the plugin.
-cepcer();
+cepcerto();
 
 /**
  * Declare compatibility with WooCommerce features.
@@ -783,7 +811,7 @@ cepcer();
  * @since 1.0.0
  * @return void
  */
-function cepcer_declare_woocommerce_compatibility() {
+function cepcerto_declare_woocommerce_compatibility() {
 	// Declare compatibility with High-Performance Order Storage (HPOS)
 	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
@@ -799,4 +827,4 @@ function cepcer_declare_woocommerce_compatibility() {
 		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'product_block_editor', __FILE__, true );
 	}
 }
-add_action( 'before_woocommerce_init', 'cepcer_declare_woocommerce_compatibility' );
+add_action( 'before_woocommerce_init', 'cepcerto_declare_woocommerce_compatibility' );

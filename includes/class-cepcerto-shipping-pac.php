@@ -12,13 +12,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( class_exists( 'CEPCER_Shipping' ) ) {
+if ( class_exists( 'CEPCERTO_Shipping' ) ) {
 	/**
 	 * PAC Shipping Method Class.
 	 *
 	 * @since 1.0.0
 	 */
-	class CEPCER_Shipping_Pac extends CEPCER_Shipping {
+	class CEPCERTO_Shipping_Pac extends CEPCERTO_Shipping {
 		/**
 		 * Constructor.
 		 *
@@ -26,7 +26,7 @@ if ( class_exists( 'CEPCER_Shipping' ) ) {
 		 * @param int $instance_id Shipping instance ID.
 		 */
 		public function __construct( $instance_id = 0 ) {
-			$this->id                 = 'cepcer_pac';
+			$this->id                 = 'cepcerto_pac';
 			$this->method_title       = __( 'CepCerto - PAC', 'cepcerto' );
 			$this->method_description = __( 'Cotação de frete PAC via CepCerto.', 'cepcerto' );
 			$this->service            = 'PAC';

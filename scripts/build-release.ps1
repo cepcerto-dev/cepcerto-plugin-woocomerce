@@ -96,7 +96,7 @@ function Test-IsIgnored {
 Update-TextFile -Path 'cepcerto.php' -Update {
     param($content)
     $content = [regex]::Replace($content, '(\* Version:\s*)[^\r\n]+', "`${1}$Version")
-    $content = [regex]::Replace($content, "(define\(\s*'CEPCER_VERSION'\s*,\s*')[^']+('\s*\);)", "`${1}$Version`${2}")
+    $content = [regex]::Replace($content, "(define\(\s*'CEPCERTO_VERSION'\s*,\s*')[^']+('\s*\);)", "`${1}$Version`${2}")
     return $content
 }
 

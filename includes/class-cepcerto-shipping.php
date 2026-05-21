@@ -18,7 +18,7 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 	 *
 	 * @since 1.0.0
 	 */
-	abstract class CEPCER_Shipping extends WC_Shipping_Method {
+	abstract class CEPCERTO_Shipping extends WC_Shipping_Method {
 		/**
 		 * Shipping service identifier.
 		 *
@@ -151,7 +151,7 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
-			$origin_cep = preg_replace( '/\D+/', '', (string) cepcer_get_option( 'cepcer_origin_cep', '' ) );
+			$origin_cep = preg_replace( '/\D+/', '', (string) cepcerto_get_option( 'cepcerto_origin_cep', '' ) );
 			if ( 8 !== strlen( $origin_cep ) ) {
 				return;
 			}
@@ -161,17 +161,17 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
-			$token = cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+			$token = cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 			if ( empty( $token ) ) {
 				$this->log_error( 'Token de cliente postagem não configurado.' );
 				return;
 			}
 
 			$cart_total      = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
-			$min_order_value = (float) cepcer_get_option( 'cepcer_min_order_value', 50 );
+			$min_order_value = (float) cepcerto_get_option( 'cepcerto_min_order_value', 50 );
 			$valor_encomenda = max( $min_order_value, min( 35000, (float) $cart_total ) );
 
-			$api    = new CEPCER_Api();
+			$api    = new CEPCERTO_Api();
 			$result = $api->quote_frete(
 				$token,
 				$origin_cep,
@@ -307,10 +307,10 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 		 */
 		protected function get_default_dimensions() {
 			return array(
-				'width'  => $this->to_float( cepcer_get_option( 'cepcer_default_width', 15.2 ) ),
-				'height' => $this->to_float( cepcer_get_option( 'cepcer_default_height', 10.5 ) ),
-				'length' => $this->to_float( cepcer_get_option( 'cepcer_default_length', 20.0 ) ),
-				'weight' => $this->to_float( cepcer_get_option( 'cepcer_default_weight', 1 ) ),
+				'width'  => $this->to_float( cepcerto_get_option( 'cepcerto_default_width', 15.2 ) ),
+				'height' => $this->to_float( cepcerto_get_option( 'cepcerto_default_height', 10.5 ) ),
+				'length' => $this->to_float( cepcerto_get_option( 'cepcerto_default_length', 20.0 ) ),
+				'weight' => $this->to_float( cepcerto_get_option( 'cepcerto_default_weight', 1 ) ),
 			);
 		}
 		/**
@@ -394,7 +394,7 @@ if ( class_exists( 'WC_Shipping_Method' ) ) {
 				return;
 			}
 
-			$enabled = cepcer_get_option( 'cepcer_debug', false );
+			$enabled = cepcerto_get_option( 'cepcerto_debug', false );
 			if ( ! in_array( $enabled, array( true, 1, '1', 'yes', 'true' ), true ) ) {
 				return;
 			}

@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class CEPCER_Api {
+class CEPCERTO_Api {
 	/**
 	 * CepCerto base URL.
 	 *
@@ -78,7 +78,7 @@ class CEPCER_Api {
 	 * @return string The client token.
 	 */
 	public function get_token_cliente_postagem() {
-		return (string) cepcer_get_option( 'cepcer_token_cliente_postagem', '' );
+		return (string) cepcerto_get_option( 'cepcerto_token_cliente_postagem', '' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ class CEPCER_Api {
 	public function consultar_cep( $cep ) {
 		$cep = preg_replace( '/\D+/', '', (string) $cep );
 		if ( 8 !== strlen( $cep ) ) {
-			return new WP_Error( 'cepcer_invalid_cep', __( 'CEP inválido.', 'cepcerto' ) );
+			return new WP_Error( 'cepcerto_invalid_cep', __( 'CEP inválido.', 'cepcerto' ) );
 		}
 
 		$token    = 'aadsp5522334455@@';
@@ -127,8 +127,8 @@ class CEPCER_Api {
 		$duration = ( microtime( true ) - $start ) * 1000;
 
 		if ( is_wp_error( $response ) ) {
-			if ( class_exists( 'CEPCER_Logger' ) ) {
-				CEPCER_Logger::log_request( 'GET', $url, null, (int) $duration, null, null, $response->get_error_message() );
+			if ( class_exists( 'CEPCERTO_Logger' ) ) {
+				CEPCERTO_Logger::log_request( 'GET', $url, null, (int) $duration, null, null, $response->get_error_message() );
 			}
 			return $response;
 		}
@@ -136,16 +136,16 @@ class CEPCER_Api {
 		$status = wp_remote_retrieve_response_code( $response );
 		$body   = wp_remote_retrieve_body( $response );
 		$data   = json_decode( $body, true );
-		if ( class_exists( 'CEPCER_Logger' ) ) {
-			CEPCER_Logger::log_request( 'GET', $url, $status, (int) $duration, null, $body, null );
+		if ( class_exists( 'CEPCERTO_Logger' ) ) {
+			CEPCERTO_Logger::log_request( 'GET', $url, $status, (int) $duration, null, $body, null );
 		}
 
 		if ( null === $data || ! is_array( $data ) ) {
-			return new WP_Error( 'cepcer_invalid_json', __( 'Resposta inválida (não-JSON).', 'cepcerto' ) );
+			return new WP_Error( 'cepcerto_invalid_json', __( 'Resposta inválida (não-JSON).', 'cepcerto' ) );
 		}
 
 		if ( isset( $data['erro'] ) && $data['erro'] ) {
-			return new WP_Error( 'cepcer_cep_not_found', __( 'CEP não encontrado.', 'cepcerto' ) );
+			return new WP_Error( 'cepcerto_cep_not_found', __( 'CEP não encontrado.', 'cepcerto' ) );
 		}
 
 		return $data;
@@ -182,7 +182,7 @@ class CEPCER_Api {
 		}
 
 		if ( isset( $result['ok'] ) && true === $result['ok'] && ! empty( $result['token'] ) ) {
-			cepcer_update_option( 'cepcer_token_cliente_postagem', sanitize_text_field( $result['token'] ) );
+			cepcerto_update_option( 'cepcerto_token_cliente_postagem', sanitize_text_field( $result['token'] ) );
 		}
 
 		return array(
@@ -345,8 +345,8 @@ class CEPCER_Api {
 		$duration = ( microtime( true ) - $start ) * 1000;
 
 		if ( is_wp_error( $response ) ) {
-			if ( class_exists( 'CEPCER_Logger' ) ) {
-				CEPCER_Logger::log_request( 'POST', $url, null, (int) $duration, $payload, null, $response->get_error_message() );
+			if ( class_exists( 'CEPCERTO_Logger' ) ) {
+				CEPCERTO_Logger::log_request( 'POST', $url, null, (int) $duration, $payload, null, $response->get_error_message() );
 			}
 			return $response;
 		}
@@ -354,12 +354,12 @@ class CEPCER_Api {
 		$status = wp_remote_retrieve_response_code( $response );
 		$body   = wp_remote_retrieve_body( $response );
 		$data   = json_decode( $body, true );
-		if ( class_exists( 'CEPCER_Logger' ) ) {
-			CEPCER_Logger::log_request( 'POST', $url, $status, (int) $duration, $payload, $body, null );
+		if ( class_exists( 'CEPCERTO_Logger' ) ) {
+			CEPCERTO_Logger::log_request( 'POST', $url, $status, (int) $duration, $payload, $body, null );
 		}
 
 		if ( null === $data ) {
-			return new WP_Error( 'cepcer_invalid_json', __( 'Resposta inválida da API.', 'cepcerto' ) );
+			return new WP_Error( 'cepcerto_invalid_json', __( 'Resposta inválida da API.', 'cepcerto' ) );
 		}
 
 		return $data;

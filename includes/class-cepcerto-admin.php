@@ -1139,6 +1139,7 @@ class CEPCERTO_Admin {
 	private function render_logs_tab() {
 		$file         = class_exists( 'CEPCERTO_Logger' ) ? CEPCERTO_Logger::get_latest_log_file() : false;
 		$download_url = wp_nonce_url( admin_url( 'admin-post.php?action=cepcerto_download_log' ), 'cepcerto_download_log' );
+		$debug_on     = $this->is_debug_enabled( cepcerto_get_option( 'cepcerto_debug', true ) );
 
 		$minutes = isset( $_GET['minutes'] ) ? absint( wp_unslash( $_GET['minutes'] ) ) : 10; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if ( $minutes <= 0 ) {
@@ -1202,7 +1203,7 @@ class CEPCERTO_Admin {
 		}
 		?>
 		<p>
-			<strong>Status do log:</strong> <?php echo ( 'yes' === $enabled ) ? 'Ativo' : 'Inativo'; ?>
+			<strong>Status do log:</strong> <?php echo $debug_on ? 'Ativo' : 'Inativo'; ?>
 		</p>
 		<form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>" style="margin: 10px 0 15px;">
 			<input type="hidden" name="page" value="cepcerto" />

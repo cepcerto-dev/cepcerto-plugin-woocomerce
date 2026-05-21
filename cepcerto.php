@@ -3,7 +3,7 @@
  * Plugin Name: CepCerto
  * Plugin URI: https://cepcerto.com/
  * Description: Plugin para cotação de fretes utilizando a API do CepCerto.
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: CepCerto
  * Author URI: https://cepcerto.com
  * License: GPLv3
@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'CEPCERTO_VERSION' ) ) {
-	define( 'CEPCERTO_VERSION', '1.0.1' );
+	define( 'CEPCERTO_VERSION', '1.0.2' );
 }
 
 if ( ! defined( 'CEPCERTO_PLUGIN_FILE' ) ) {
@@ -297,73 +297,15 @@ register_activation_hook( CEPCERTO_PLUGIN_FILE, 'cepcerto_activate_plugin' );
 /**
  * Plugin deactivation hook.
  *
- * Deletes all plugin data from WordPress when plugin is deactivated.
+ * Keeps plugin data intact when the plugin is deactivated.
+ *
+ * Data cleanup is handled only by uninstall.php when the user deletes the plugin.
  *
  * @since 1.0.0
  * @return void
  */
 function cepcerto_deactivate_plugin() {
-	// Delete all plugin options.
-	$options = array(
-		'cepcerto_token_cliente_postagem',
-		'cepcerto_origin_cep',
-		'cepcerto_nome_remetente',
-		'cepcerto_cpf_cnpj_remetente',
-		'cepcerto_whatsapp_remetente',
-		'cepcerto_email_remetente',
-		'cepcerto_logradouro_remetente',
-		'cepcerto_bairro_remetente',
-		'cepcerto_numero_endereco_remetente',
-		'cepcerto_complemento_remetente',
-		'cepcerto_debug',
-		'cepcerto_default_width',
-		'cepcerto_default_height',
-		'cepcerto_default_length',
-		'cepcerto_default_weight',
-		'cepcerto_min_order_value',
-		'cepcerto_display_locations',
-		'cepcerto_install_status',
-		'cepcerto_consent_given',
-		'cepcerto_consent_date',
-		'cepcerto_consent_email',
-		'cepcerto_shipping_method_migration_done',
-		'cepcerto_shipping_method_legacy_migration_done',
-	);
-
-	foreach ( $options as $option ) {
-		cepcerto_delete_option( $option );
-	}
-
-	// Delete transients.
-	global $wpdb;
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_cepcerto_' ) . '%'
-		)
-	);
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_timeout_cepcerto_' ) . '%'
-		)
-	);
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_' . cepcerto_get_legacy_prefix() ) . '%'
-		)
-	);
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional cleanup during deactivation.
-	$wpdb->query(
-		$wpdb->prepare(
-			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
-			$wpdb->esc_like( '_transient_timeout_' . cepcerto_get_legacy_prefix() ) . '%'
-		)
-	);
+	return;
 }
 
 register_deactivation_hook( CEPCERTO_PLUGIN_FILE, 'cepcerto_deactivate_plugin' );

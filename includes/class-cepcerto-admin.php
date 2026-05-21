@@ -1432,8 +1432,8 @@ class CEPCERTO_Admin {
 		}
 
 		$billing_phone = preg_replace( '/\D+/', '', (string) $order->get_billing_phone() );
-		if ( '' === $billing_phone ) {
-			$billing_phone = '11975532552'; // TODO: AQUI - telefone fallback chumbado
+		if ( 10 > strlen( $billing_phone ) || 11 < strlen( $billing_phone ) ) {
+			wp_send_json_error( array( 'message' => 'O telefone do destinatário deve conter DDD e 10 ou 11 dígitos.' ), 400 );
 		}
 		$billing_email = (string) $order->get_billing_email();
 
@@ -1446,8 +1446,8 @@ class CEPCERTO_Admin {
 				break;
 			}
 		}
-		if ( '' === $cpf_cnpj_dest ) {
-			$cpf_cnpj_dest = '44598844884'; // TODO: AQUI - CPF fallback chumbado
+		if ( 11 !== strlen( $cpf_cnpj_dest ) && 14 !== strlen( $cpf_cnpj_dest ) ) {
+			wp_send_json_error( array( 'message' => 'Informe CPF ou CNPJ válido no pedido antes de gerar a etiqueta.' ), 400 );
 		}
 
 		$shipping_address_1 = (string) $order->get_shipping_address_1();
@@ -1458,7 +1458,7 @@ class CEPCERTO_Admin {
 		$logradouro_dest  = '' !== $shipping_address_1 ? $shipping_address_1 : $billing_address_1;
 		$complemento_dest = '' !== $shipping_address_2 ? $shipping_address_2 : $billing_address_2;
 		if ( '' === trim( $complemento_dest ) ) {
-			$complemento_dest = '-'; // TODO: AQUI - complemento fallback chumbado
+			$complemento_dest = '-';
 		}
 
 		$numero_dest = '';
@@ -1473,7 +1473,10 @@ class CEPCERTO_Admin {
 		if ( empty( $bairro_meta ) ) {
 			$bairro_meta = $order->get_meta( '_billing_neighborhood', true );
 		}
-		$bairro_dest = ! empty( $bairro_meta ) ? (string) $bairro_meta : 'Centro'; // TODO: AQUI - bairro fallback chumbado
+		$bairro_dest = ! empty( $bairro_meta ) ? (string) $bairro_meta : '';
+		if ( '' === trim( $bairro_dest ) ) {
+			wp_send_json_error( array( 'message' => 'Informe o bairro do destinatário no pedido antes de gerar a etiqueta.' ), 400 );
+		}
 
 		$payload = array(
 			'token_cliente_postagem'       => $token,
@@ -1764,7 +1767,7 @@ class CEPCERTO_Admin {
 			$out = array();
 			foreach ( $value as $k => $v ) {
 				$key = strtolower( (string) $k );
-				if ( in_array( $key, array( 'api_key', 'token', 'authorization', 'token_cliente_postagem' ), true ) ) {
+				if ( in_array( $key, $this->get_sensitive_log_keys(), true ) ) {
 					$out[ $k ] = '***';
 					continue;
 				}
@@ -1785,5 +1788,44 @@ class CEPCERTO_Admin {
 		}
 
 		return $value;
+	}
+
+	private function get_sensitive_log_keys() {
+		return array(
+			'api_key',
+			'token',
+			'authorization',
+			'token_cliente_postagem',
+			'cpf',
+			'cnpj',
+			'cpf_cnpj_destinatario',
+			'cpf_cnpj_remetente',
+			'email',
+			'email_cliente',
+			'email_destinatario',
+			'email_remetente',
+			'nome',
+			'nome_cliente',
+			'nome_destinatario',
+			'nome_remetente',
+			'phone',
+			'telefone',
+			'whatsapp',
+			'whatsapp_destinatario',
+			'whatsapp_remetente',
+			'logradouro',
+			'logradouro_destinatario',
+			'logradouro_remetente',
+			'bairro',
+			'bairro_destinatario',
+			'bairro_remetente',
+			'numero_endereco_destinatario',
+			'numero_endereco_remetente',
+			'complemento_destinatario',
+			'complemento_remetente',
+			'pix',
+			'copia_cola',
+			'qr_code',
+		);
 	}
 }

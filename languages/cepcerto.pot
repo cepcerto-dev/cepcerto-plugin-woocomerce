@@ -2,7 +2,7 @@
 # This file is distributed under the GPLv3.
 msgid ""
 msgstr ""
-"Project-Id-Version: CepCerto 1.0.1\n"
+"Project-Id-Version: CepCerto 1.0.2\n"
 "Report-Msgid-Bugs-To: https://cepcerto.com/\n"
 "POT-Creation-Date: 2025-01-01 00:00:00+00:00\n"
 "MIME-Version: 1.0\n"

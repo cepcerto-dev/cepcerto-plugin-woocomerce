@@ -4,7 +4,7 @@ Tags: shipping, woocommerce, brazil, frete
 Requires at least: 6.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -120,6 +120,17 @@ Yes, the plugin is compatible with WooCommerce Cart & Checkout Blocks.
 5. Logs de debug
 
 == Changelog ==
+
+= 1.0.2 =
+* Removed hardcoded recipient fallback data when generating shipping labels.
+* Improved debug logging privacy and disabled file logging unless debug mode is enabled.
+* Preserved plugin settings and tokens on deactivation; cleanup remains available on uninstall.
+* Updated submission-readiness metadata and documentation.
+
+= 1.0.1 =
+* Nonces and User Permissions for security
+* Sanitization and escaping improvements
+* Security hardening and code quality improvements
 
 = 1.0.0 =
 * Initial release

@@ -34,7 +34,8 @@ class CEPCERTO_Logger {
 	 * @return bool True if enabled.
 	 */
 	public static function is_enabled() {
-		return true;
+		$enabled = cepcerto_get_option( 'cepcerto_debug', false );
+		return in_array( $enabled, array( true, 1, '1', 'yes', 'true' ), true );
 	}
 
 	/**
@@ -47,6 +48,10 @@ class CEPCERTO_Logger {
 	 * @return void
 	 */
 	public static function log( $level, $message, $context = array() ) {
+		if ( ! self::is_enabled() ) {
+			return;
+		}
+
 		$context = self::sanitize_context( (array) $context );
 		$line    = sprintf(
 			"[%s] [%s] %s %s\n",
@@ -73,6 +78,10 @@ class CEPCERTO_Logger {
 	 * @return void
 	 */
 	public static function log_request( $method, $url, $status, $duration_ms, $request_body = null, $response_body = null, $error = null ) {
+		if ( ! self::is_enabled() ) {
+			return;
+		}
+
 		$context = array(
 			'method'      => (string) $method,
 			'url'         => (string) $url,
@@ -85,11 +94,11 @@ class CEPCERTO_Logger {
 		}
 
 		if ( ! is_null( $request_body ) ) {
-			$context['request'] = self::truncate( $request_body );
+			$context['request'] = self::truncate( self::sanitize_context_value( $request_body ) );
 		}
 
 		if ( ! is_null( $response_body ) ) {
-			$context['response'] = self::truncate( $response_body );
+			$context['response'] = self::truncate( self::sanitize_context_value( $response_body ) );
 		}
 
 		self::log( 'info', 'HTTP Request', $context );
@@ -105,6 +114,7 @@ class CEPCERTO_Logger {
 		$upload = wp_upload_dir();
 		$dir    = trailingslashit( $upload['basedir'] ) . 'cepcerto-logs';
 		wp_mkdir_p( $dir );
+		self::protect_log_dir( $dir );
 
 		$filename = 'cepcerto-' . gmdate( 'Y-m-d' ) . '.log';
 		return trailingslashit( $dir ) . $filename;
@@ -189,12 +199,111 @@ class CEPCERTO_Logger {
 		$sanitized = array();
 		foreach ( $context as $k => $v ) {
 			$key = strtolower( (string) $k );
-			if ( in_array( $key, array( 'api_key', 'token', 'authorization', 'token_cliente_postagem' ), true ) ) {
+			if ( self::is_sensitive_key( $key ) ) {
 				$sanitized[ $k ] = '***';
 				continue;
 			}
-			$sanitized[ $k ] = $v;
+			$sanitized[ $k ] = self::sanitize_context_value( $v );
 		}
 		return $sanitized;
+	}
+
+	/**
+	 * Sanitize a context value recursively.
+	 *
+	 * @since 1.0.1
+	 * @param mixed $value Context value.
+	 * @return mixed Sanitized value.
+	 */
+	private static function sanitize_context_value( $value ) {
+		if ( is_array( $value ) ) {
+			return self::sanitize_context( $value );
+		}
+
+		if ( is_object( $value ) ) {
+			return self::sanitize_context( get_object_vars( $value ) );
+		}
+
+		if ( is_string( $value ) ) {
+			$trim        = trim( $value );
+			$starts_json = '' !== $trim && ( '{' === substr( $trim, 0, 1 ) || '[' === substr( $trim, 0, 1 ) );
+			if ( $starts_json ) {
+				$decoded = json_decode( $trim, true );
+				if ( JSON_ERROR_NONE === json_last_error() ) {
+					return self::sanitize_context_value( $decoded );
+				}
+			}
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Check whether a log key contains sensitive data.
+	 *
+	 * @since 1.0.1
+	 * @param string $key Context key.
+	 * @return bool True when sensitive.
+	 */
+	private static function is_sensitive_key( $key ) {
+		$sensitive_keys = array(
+			'api_key',
+			'token',
+			'authorization',
+			'token_cliente_postagem',
+			'cpf',
+			'cnpj',
+			'cpf_cnpj_destinatario',
+			'cpf_cnpj_remetente',
+			'email',
+			'email_cliente',
+			'email_destinatario',
+			'email_remetente',
+			'nome',
+			'nome_cliente',
+			'nome_destinatario',
+			'nome_remetente',
+			'phone',
+			'telefone',
+			'whatsapp',
+			'whatsapp_destinatario',
+			'whatsapp_remetente',
+			'logradouro',
+			'logradouro_destinatario',
+			'logradouro_remetente',
+			'bairro',
+			'bairro_destinatario',
+			'bairro_remetente',
+			'numero_endereco_destinatario',
+			'numero_endereco_remetente',
+			'complemento_destinatario',
+			'complemento_remetente',
+			'pix',
+			'copia_cola',
+			'qr_code',
+		);
+
+		return in_array( $key, $sensitive_keys, true );
+	}
+
+	/**
+	 * Add basic files to discourage direct browsing of log files.
+	 *
+	 * @since 1.0.1
+	 * @param string $dir Log directory.
+	 * @return void
+	 */
+	private static function protect_log_dir( $dir ) {
+		$index_file = trailingslashit( $dir ) . 'index.html';
+		if ( ! file_exists( $index_file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Small static protection file in plugin-owned uploads directory.
+			@file_put_contents( $index_file, '' );
+		}
+
+		$htaccess_file = trailingslashit( $dir ) . '.htaccess';
+		if ( ! file_exists( $htaccess_file ) ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Small static protection file in plugin-owned uploads directory.
+			@file_put_contents( $htaccess_file, "Deny from all\n" );
+		}
 	}
 }
